@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeetSync — Auto GitHub Commit & Revision Tracker</title>
+  <meta name="description" content="LeetSync is a premium Chrome Extension that auto-commits your accepted LeetCode solutions to GitHub, tracks progress with spaced-repetition revision scheduling, and shows beautiful analytics dashboards." />
+  <meta name="keywords" content="LeetCode, Chrome Extension, GitHub, Auto Commit, Spaced Repetition, Coding, DSA, LeetSync" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <div class="logo-icon">⚡</div>
+        <span class="logo-text">LeetSync</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        <a href="#install" class="nav-link">Install</a>
+        <a href="#guide" class="nav-link">Guide</a>
+      </div>
+      <a href="https://drive.google.com/drive/folders/1782kGZje5-djm6OoCpGxnYJ0Q4UklPac?usp=sharing" target="_blank" class="btn-cta nav-cta" id="nav-download-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download Extension
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Chrome Extension &middot; Manifest V3 &middot; Free
+      </div>
+      <h1 class="hero-title">
+        Auto-commit your<br />
+        <span class="gradient-text">LeetCode Solutions</span><br />
+        to GitHub ⚡
+      </h1>
+      <p class="hero-desc">
+        LeetSync detects when you solve a problem, pushes your code to GitHub instantly,<br />
+        and keeps you sharp with Anki-style revision scheduling &amp; rich analytics.
+      </p>
+      <div class="hero-actions">
+        <a href="https://drive.google.com/drive/folders/1782kGZje5-djm6OoCpGxnYJ0Q4UklPac?usp=sharing" target="_blank" class="btn-cta" id="hero-download-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download Free Extension
+        </a>
+        <a href="#install" class="btn-ghost" id="hero-install-btn">
+          View Install Guide &rarr;
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num">10+</span>
+          <span class="hero-stat-label">Features</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">7</span>
+          <span class="hero-stat-label">Revision Stages</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">15+</span>
+          <span class="hero-stat-label">Topic Insights</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">100%</span>
+          <span class="hero-stat-label">Free &amp; Open</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating code card -->
+    <div class="hero-code-card">
+      <div class="code-card-header">
+        <div class="code-dot red"></div>
+        <div class="code-dot yellow"></div>
+        <div class="code-dot green"></div>
+        <span class="code-card-title">✅ Accepted — Two Sum</span>
+      </div>
+      <pre class="code-preview"><span class="kw">def</span> <span class="fn">twoSum</span>(nums, target):
+    seen = {}
+    <span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(nums):
+        diff = target - n
+        <span class="kw">if</span> diff <span class="kw">in</span> seen:
+            <span class="kw">return</span> [seen[diff], i]
+        seen[n] = i</pre>
+      <div class="code-card-footer">
+        <span class="pushed-badge">⚡ Pushed to GitHub</span>
+        <span class="revision-badge">📅 Next revision: 3 days</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section features-section" id="features">
+    <div class="container">
+      <div class="section-label-tag">✨ Features</div>
+      <h2 class="section-title">Everything you need to<br /><span class="gradient-text">master LeetCode</span></h2>
+      <p class="section-desc">A complete ecosystem built right into your browser — no external apps needed.</p>
+
+      <div class="features-grid">
+
+        <div class="feature-card feature-card-wide" id="feat-github">
+          <div class="feature-icon">🔄</div>
+          <h3 class="feature-title">Auto GitHub Commit</h3>
+          <p class="feature-desc">The moment your submission is accepted, LeetSync detects it, fetches the final code, and pushes it neatly organised into your GitHub repo — zero manual effort.</p>
+          <div class="feature-repo-preview">
+            <div class="repo-line"><span class="repo-folder">📁</span> LeetCode/</div>
+            <div class="repo-line indent"><span class="repo-folder">📁</span> Arrays/</div>
+            <div class="repo-line indent2"><span class="repo-file">📄</span> 0001-two-sum/Solution.py</div>
+            <div class="repo-line indent"><span class="repo-folder">📁</span> DP/</div>
+            <div class="repo-line indent2"><span class="repo-file">📄</span> 0322-coin-change/Solution.java</div>
+          </div>
+        </div>
+
+        <div class="feature-card" id="feat-revision">
+          <div class="feature-icon">🧠</div>
+          <h3 class="feature-title">Spaced Repetition</h3>
+          <p class="feature-desc">Anki-style revision scheduling — 1, 3, 7, 15, 30, 60, 120 day intervals. Mark remembered or forgot and the algorithm adapts.</p>
+          <div class="revision-stages">
+            <div class="stage done">1d</div>
+            <div class="stage done">3d</div>
+            <div class="stage active">7d</div>
+            <div class="stage">15d</div>
+            <div class="stage">30d</div>
+            <div class="stage">60d</div>
+            <div class="stage">120d</div>
+          </div>
+        </div>
+
+        <div class="feature-card" id="feat-analytics">
+          <div class="feature-icon">📊</div>
+          <h3 class="feature-title">Rich Analytics</h3>
+          <p class="feature-desc">Difficulty donut charts, topic radar graphs, calendar heatmaps, and streak counters — all beautifully visualised.</p>
+          <div class="mini-bars">
+            <div class="mini-bar-row"><span class="mini-label easy-text">Easy</span><div class="mini-bar-bg"><div class="mini-bar-fill easy-fill" style="width:70%"></div></div><span class="mini-val">70</span></div>
+            <div class="mini-bar-row"><span class="mini-label med-text">Medium</span><div class="mini-bar-bg"><div class="mini-bar-fill med-fill" style="width:48%"></div></div><span class="mini-val">48</span></div>
+            <div class="mini-bar-row"><span class="mini-label hard-text">Hard</span><div class="mini-bar-bg"><div class="mini-bar-fill hard-fill" style="width:22%"></div></div><span class="mini-val">22</span></div>
+          </div>
+        </div>
+
+        <div class="feature-card" id="feat-journal">
+          <div class="feature-icon">📔</div>
+          <h3 class="feature-title">Daily Coding Journal</h3>
+          <p class="feature-desc">Every accepted problem is logged with timestamp, difficulty, time spent, and your personal notes — mistakes, patterns, observations.</p>
+        </div>
+
+        <div class="feature-card" id="feat-heatmap">
+          <div class="feature-icon">📅</div>
+          <h3 class="feature-title">Calendar Heatmap</h3>
+          <p class="feature-desc">A GitHub-style contribution graph showing your daily consistency. Watch your streak grow and never miss a day.</p>
+          <div class="mini-heatmap" id="mini-heatmap"></div>
+        </div>
+
+        <div class="feature-card" id="feat-company">
+          <div class="feature-icon">🏢</div>
+          <h3 class="feature-title">Company Tags</h3>
+          <p class="feature-desc">Problems tagged by FAANG company frequency so you can laser-focus your prep for your target company interviews.</p>
+        </div>
+
+        <div class="feature-card" id="feat-streak">
+          <div class="feature-icon">🔥</div>
+          <h3 class="feature-title">Streak Counter</h3>
+          <p class="feature-desc">Track your current and longest solve streaks. Notifications remind you to keep your streak alive every day.</p>
+          <div class="streak-display">
+            <span class="streak-num">🔥 42</span>
+            <span class="streak-sub">Day Streak</span>
+          </div>
+        </div>
+
+        <div class="feature-card" id="feat-time">
+          <div class="feature-icon">⏱️</div>
+          <h3 class="feature-title">Time Analytics</h3>
+          <p class="feature-desc">Average solve time per difficulty level — see if you're improving and where you spend the most time.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section how-section" id="how-it-works">
+    <div class="container">
+      <div class="section-label-tag">🔍 How It Works</div>
+      <h2 class="section-title">From solve to <span class="gradient-text">GitHub commit</span><br />in seconds</h2>
+
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-step-num">01</div>
+          <div class="how-step-content">
+            <h3>You solve a problem on LeetCode</h3>
+            <p>LeetSync's content script silently monitors your LeetCode tab for an accepted submission event.</p>
+          </div>
+        </div>
+        <div class="how-arrow">→</div>
+        <div class="how-step">
+          <div class="how-step-num">02</div>
+          <div class="how-step-content">
+            <h3>Code is fetched via GraphQL</h3>
+            <p>The service worker calls LeetCode's API to retrieve your submitted code, difficulty, and topic tags.</p>
+          </div>
+        </div>
+        <div class="how-arrow">→</div>
+        <div class="how-step">
+          <div class="how-step-num">03</div>
+          <div class="how-step-content">
+            <h3>Pushed to your GitHub repo</h3>
+            <p>Your code is committed under <code>LeetCode/[Topic]/[problem]/Solution.[lang]</code> using the GitHub REST API.</p>
+          </div>
+        </div>
+        <div class="how-arrow">→</div>
+        <div class="how-step">
+          <div class="how-step-num">04</div>
+          <div class="how-step-content">
+            <h3>Revision is scheduled</h3>
+            <p>LeetSync schedules 7 smart revision reminders so you never forget what you learned.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALLATION GUIDE -->
+  <section class="section install-section" id="install">
+    <div class="container">
+      <div class="section-label-tag">🚀 Installation</div>
+      <h2 class="section-title">Get started in <span class="gradient-text">3 simple steps</span></h2>
+      <p class="section-desc">No Chrome Web Store required. Load it directly — takes under 2 minutes.</p>
+
+      <div class="install-steps">
+
+        <!-- Step 1 -->
+        <div class="install-step" id="install-step-1">
+          <div class="step-header">
+            <div class="step-num">1</div>
+            <div class="step-info">
+              <h3 class="step-title">Download the Extension Files</h3>
+              <p class="step-desc">Get the latest build from Google Drive — a pre-built <code>dist/</code> folder ready to load.</p>
+            </div>
+          </div>
+          <div class="step-action">
+            <a href="https://drive.google.com/drive/folders/1782kGZje5-djm6OoCpGxnYJ0Q4UklPac?usp=sharing" target="_blank" class="btn-cta" id="step1-download-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Open Google Drive &rarr;
+            </a>
+            <div class="step-tip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              Download the <strong>entire folder</strong> as a ZIP, then extract it
+            </div>
+          </div>
+          <div class="step-substeps">
+            <div class="substep">
+              <span class="substep-num">a</span>
+              <span>Click the link above to open Google Drive</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">b</span>
+              <span>Right-click the folder &rarr; <strong>"Download"</strong> to download as ZIP</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">c</span>
+              <span>Extract the ZIP to a permanent folder on your computer (e.g., <code>Documents/LeetSync/</code>)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="install-step" id="install-step-2">
+          <div class="step-header">
+            <div class="step-num">2</div>
+            <div class="step-info">
+              <h3 class="step-title">Load Extension into Chrome</h3>
+              <p class="step-desc">Enable Developer Mode and load the unpacked extension folder.</p>
+            </div>
+          </div>
+          <div class="step-substeps">
+            <div class="substep">
+              <span class="substep-num">a</span>
+              <span>Open Chrome and navigate to <code>chrome://extensions</code></span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">b</span>
+              <span>Toggle <strong>Developer mode</strong> ON (top-right corner)</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">c</span>
+              <span>Click <strong>"Load unpacked"</strong> button (top-left)</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">d</span>
+              <span>Navigate to and select the extracted folder (the one containing <code>manifest.json</code>)</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">e</span>
+              <span>The <strong>LeetSync ⚡</strong> icon will appear in your Chrome toolbar</span>
+            </div>
+          </div>
+          <div class="chrome-steps-visual">
+            <div class="chrome-step-chip">chrome://extensions</div>
+            <span class="chip-arrow">→</span>
+            <div class="chrome-step-chip active-chip">Developer Mode ON</div>
+            <span class="chip-arrow">→</span>
+            <div class="chrome-step-chip">Load Unpacked</div>
+            <span class="chip-arrow">→</span>
+            <div class="chrome-step-chip success-chip">⚡ LeetSync Added!</div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="install-step" id="install-step-3">
+          <div class="step-header">
+            <div class="step-num">3</div>
+            <div class="step-info">
+              <h3 class="step-title">Connect Your GitHub Account</h3>
+              <p class="step-desc">Generate a Personal Access Token and link it to LeetSync — one-time setup.</p>
+            </div>
+          </div>
+          <div class="step-substeps">
+            <div class="substep">
+              <span class="substep-num">a</span>
+              <span>Go to <a href="https://github.com/settings/tokens" target="_blank" class="code-link">github.com/settings/tokens</a></span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">b</span>
+              <span>Click <strong>"Generate new token (classic)"</strong></span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">c</span>
+              <span>Give it a name (e.g., <code>leetsync</code>) and check the <strong>✅ repo</strong> scope</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">d</span>
+              <span>Click <strong>"Generate token"</strong> and copy the token (starts with <code>ghp_...</code>)</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">e</span>
+              <span>Click the <strong>⚡ LeetSync</strong> icon in Chrome toolbar &rarr; go to <strong>Settings</strong></span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">f</span>
+              <span>Enter your <strong>GitHub Token</strong>, <strong>Username</strong>, and the <strong>Repository name</strong> you want to use</span>
+            </div>
+            <div class="substep">
+              <span class="substep-num">g</span>
+              <span>Click <strong>"Save Settings"</strong> — you're all set! 🎉</span>
+            </div>
+          </div>
+          <div class="token-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <strong>Important:</strong> Create the GitHub repository first (can be empty). LeetSync will populate it automatically after your first accepted submission.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- USAGE GUIDE -->
+  <section class="section guide-section" id="guide">
+    <div class="container">
+      <div class="section-label-tag">📖 Usage Guide</div>
+      <h2 class="section-title">How to use <span class="gradient-text">every feature</span></h2>
+
+      <div class="guide-grid">
+
+        <div class="guide-card" id="guide-autocommit">
+          <div class="guide-card-header">
+            <span class="guide-icon">🔄</span>
+            <h3>Auto GitHub Commit</h3>
+          </div>
+          <p>Once configured, <strong>LeetSync works automatically</strong>. Just solve problems on LeetCode as usual — whenever a submission is accepted, LeetSync commits it to your repo within seconds. No button to click, no copy-paste.</p>
+          <div class="guide-note success-note">✅ Works on all LeetCode problem pages automatically</div>
+        </div>
+
+        <div class="guide-card" id="guide-dashboard">
+          <div class="guide-card-header">
+            <span class="guide-icon">📊</span>
+            <h3>Dashboard &amp; Analytics</h3>
+          </div>
+          <p>Click the <strong>⚡ LeetSync icon</strong> in your toolbar &rarr; click <strong>"Open Dashboard"</strong>. You'll see:</p>
+          <ul class="guide-list">
+            <li>Difficulty breakdown (Easy / Medium / Hard)</li>
+            <li>Topic radar chart (DP, Graphs, Trees, etc.)</li>
+            <li>Calendar heatmap of your activity</li>
+            <li>Current &amp; longest streak counters</li>
+            <li>Average solve time per difficulty</li>
+          </ul>
+        </div>
+
+        <div class="guide-card" id="guide-revision">
+          <div class="guide-card-header">
+            <span class="guide-icon">🧠</span>
+            <h3>Revision System</h3>
+          </div>
+          <p>Navigate to the <strong>Revisions</strong> tab in the dashboard. Problems due for revision appear at the top.</p>
+          <ul class="guide-list">
+            <li>Click <strong>✅ Remembered</strong> to advance to the next revision date</li>
+            <li>Click <strong>❌ Forgot</strong> to reset that slot to tomorrow</li>
+            <li>LeetSync will notify you each day when revisions are due</li>
+          </ul>
+          <div class="revision-timeline">
+            <div class="tl-item tl-done">1d</div>
+            <div class="tl-line tl-done-line"></div>
+            <div class="tl-item tl-done">3d</div>
+            <div class="tl-line tl-done-line"></div>
+            <div class="tl-item tl-current">7d</div>
+            <div class="tl-line"></div>
+            <div class="tl-item">15d</div>
+            <div class="tl-line"></div>
+            <div class="tl-item">30d</div>
+          </div>
+        </div>
+
+        <div class="guide-card" id="guide-journal">
+          <div class="guide-card-header">
+            <span class="guide-icon">📔</span>
+            <h3>Coding Journal</h3>
+          </div>
+          <p>Go to the <strong>Journal</strong> tab to see every problem you've solved, along with:</p>
+          <ul class="guide-list">
+            <li>Date and time of submission</li>
+            <li>Problem difficulty and topic tags</li>
+            <li>Time spent on the problem</li>
+            <li>Your personal notes (mistakes, patterns, observations)</li>
+          </ul>
+          <p>Click any entry to expand and add or edit your notes.</p>
+        </div>
+
+        <div class="guide-card" id="guide-settings">
+          <div class="guide-card-header">
+            <span class="guide-icon">⚙️</span>
+            <h3>Settings &amp; Configuration</h3>
+          </div>
+          <p>Click <strong>⚡ LeetSync &rarr; Settings</strong> to manage:</p>
+          <ul class="guide-list">
+            <li><strong>GitHub Token</strong> — your personal access token</li>
+            <li><strong>GitHub Username</strong> — your GitHub handle</li>
+            <li><strong>Repository Name</strong> — the repo to push solutions to</li>
+            <li><strong>Notifications</strong> — toggle daily revision reminders</li>
+          </ul>
+          <div class="guide-note warning-note">⚠️ Never share your GitHub token. It grants repo access.</div>
+        </div>
+
+        <div class="guide-card" id="guide-repo">
+          <div class="guide-card-header">
+            <span class="guide-icon">📁</span>
+            <h3>Repo Structure</h3>
+          </div>
+          <p>LeetSync organises your solutions automatically by <strong>topic</strong>:</p>
+          <pre class="guide-code">YourRepo/
+└── LeetCode/
+    ├── Arrays/
+    │   └── 0001-two-sum/
+    │       ├── Solution.py
+    │       └── README.md
+    ├── DP/
+    │   └── 0322-coin-change/
+    │       ├── Solution.java
+    │       └── README.md
+    └── Graphs/
+        └── 0200-number-of-islands/
+            └── Solution.cpp</pre>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section class="section tech-section" id="tech">
+    <div class="container">
+      <div class="section-label-tag">🛠 Tech Stack</div>
+      <h2 class="section-title">Built with <span class="gradient-text">modern tech</span></h2>
+      <div class="tech-grid">
+        <div class="tech-pill"><span class="tech-dot"></span>Manifest V3</div>
+        <div class="tech-pill"><span class="tech-dot"></span>TypeScript</div>
+        <div class="tech-pill"><span class="tech-dot"></span>React 19</div>
+        <div class="tech-pill"><span class="tech-dot"></span>Framer Motion</div>
+        <div class="tech-pill"><span class="tech-dot"></span>Recharts</div>
+        <div class="tech-pill"><span class="tech-dot"></span>Tailwind CSS v4</div>
+        <div class="tech-pill"><span class="tech-dot"></span>GitHub REST API</div>
+        <div class="tech-pill"><span class="tech-dot"></span>Vite 8</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-banner" id="cta">
+    <div class="cta-glow"></div>
+    <div class="container cta-inner">
+      <h2 class="cta-title">Ready to build your <span class="gradient-text">LeetCode portfolio</span>?</h2>
+      <p class="cta-desc">Download LeetSync, install in 2 minutes, and never lose a solution again.</p>
+      <a href="https://drive.google.com/drive/folders/1782kGZje5-djm6OoCpGxnYJ0Q4UklPac?usp=sharing" target="_blank" class="btn-cta btn-cta-large" id="cta-download-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download LeetSync — Free
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">LeetSync</span>
+      </div>
+      <p class="footer-tagline">Auto-commit &middot; Spaced Repetition &middot; Analytics</p>
+      <p class="footer-copy">MIT License &copy; 2026 &middot; Built with ❤️ for the DSA community</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
