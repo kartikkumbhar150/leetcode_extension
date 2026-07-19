@@ -5,3 +5,5 @@ dist-web/
 .DS_Store
 Thumbs.db
 *.local
+.env.local
+.env.*.local

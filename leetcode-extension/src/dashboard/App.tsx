@@ -2,20 +2,21 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, BarChart3,
-  Calendar, GitBranch, Settings, Zap,
-  RefreshCw, Sparkles
+  Calendar, Settings, Zap,
+  RefreshCw, Sparkles, LogOut, User
 } from "lucide-react";
 import type { Stats } from "../services/analytics";
 import { computeStats, formatMs } from "../services/analytics";
 import { getDueRevisions } from "../services/revision";
-import { getProblems, getSettings } from "../services/storage";
-import type { AppSettings } from "../services/storage";
 import HeatmapView from "./HeatmapView";
 import DifficultyChart from "./DifficultyChart";
 import TopicChart from "./TopicChart";
 import JournalView from "./JournalView";
 import RevisionView from "./RevisionView";
 import SettingsView from "./SettingsView";
+import AuthPage from "./AuthPage";
+import { getToken, getStoredUser, logout } from "../services/storage-adapter";
+import type { StoredUser } from "../services/storage-adapter";
 
 const IS_WEB =
   typeof chrome === "undefined" ||
@@ -42,14 +43,50 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [dueCount, setDueCount] = useState(0);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState<StoredUser | null>(null);
 
+  // Check for existing token on mount
   useEffect(() => {
+    (async () => {
+      const [token, storedUser] = await Promise.all([getToken(), getStoredUser()]);
+      if (token && storedUser) setUser(storedUser);
+      setAuthChecked(true);
+    })();
+  }, []);
+
+  // Load stats once authenticated
+  useEffect(() => {
+    if (!user) return;
     computeStats().then(setStats);
     getDueRevisions().then((r) => setDueCount(r.length));
-  }, []);
+  }, [user]);
+
+  async function handleLogout() {
+    await logout();
+    setUser(null);
+    setStats(null);
+    setDueCount(0);
+  }
+
+  // ── Auth gate ──────────────────────────────────────────────
+  if (!authChecked) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-base)" }}>
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}>
+          <Zap size={32} color="var(--accent)" />
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage onSuccess={(u) => setUser(u)} />;
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+
       {/* ── Demo Banner (web only) ───────────────────────────── */}
       {IS_WEB && (
         <div
@@ -174,7 +211,56 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* User row */}
+        <div
+          style={{
+            marginTop: stats ? "0.5rem" : "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "0.5rem 0.6rem",
+            borderRadius: "var(--radius-sm)",
+            background: "var(--bg-glass)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          <div
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: "50%",
+              background: "var(--accent-glow)",
+              border: "1px solid rgba(245,158,11,.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <User size={12} color="var(--accent)" />
+          </div>
+          <span style={{ fontSize: 11, color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {user.username || user.email.split("@")[0]}
+          </span>
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--text-muted)",
+              display: "flex",
+              padding: 2,
+              borderRadius: 4,
+            }}
+          >
+            <LogOut size={13} />
+          </button>
+        </div>
       </aside>
+
 
       {/* ── Main Content ───────────────────────────────────── */}
       <main
