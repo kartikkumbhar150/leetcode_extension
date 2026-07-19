@@ -3,11 +3,11 @@
     "target": "es2020",
     "module": "commonjs",
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "outDir": ".vercel/output",
     "skipLibCheck": true
   },
   "include": ["./**/*.ts"],
