@@ -11,7 +11,7 @@ export interface LeetCodeProblemMeta {
   tags: string[];
   companies: string[];
   url: string;
-  content: string;  // HTML description
+  content: string;
 }
 
 export interface SubmissionDetail {
@@ -55,6 +55,7 @@ export async function fetchProblemMeta(slug: string): Promise<LeetCodeProblemMet
       }
     }
   `;
+
   const data = await gql<{
     question: {
       questionId: string;
@@ -63,18 +64,23 @@ export async function fetchProblemMeta(slug: string): Promise<LeetCodeProblemMet
       difficulty: string;
       content: string;
       topicTags: { name: string }[];
-      companyTagStats: string;
+      companyTagStats: string | null;
     };
   }>(query, { titleSlug: slug });
 
   const q = data.question;
+
+  // companyTagStats may be null, empty, or a JSON string — handle all cases
   let companies: string[] = [];
   try {
-    const parsed = JSON.parse(q.companyTagStats);
-    companies = Object.values(parsed)
-      .flat()
-      .map((c: any) => c.name);
-  } catch {}
+    if (q.companyTagStats) {
+      const parsed = JSON.parse(q.companyTagStats);
+      companies = (Object.values(parsed) as { name: string }[][])
+        .flat()
+        .map((c) => c.name)
+        .filter(Boolean);
+    }
+  } catch { /* silently ignore invalid companyTagStats */ }
 
   return {
     id: q.questionId.padStart(4, "0"),
@@ -84,7 +90,7 @@ export async function fetchProblemMeta(slug: string): Promise<LeetCodeProblemMet
     tags: q.topicTags.map((t) => t.name),
     companies,
     url: `https://leetcode.com/problems/${q.titleSlug}/`,
-    content: q.content,
+    content: q.content ?? "",
   };
 }
 
@@ -111,7 +117,7 @@ export async function fetchLatestAcceptedSubmission(
     }
   `;
 
-  const data = await gql<{
+  let data: {
     questionSubmissionList: {
       submissions: {
         id: string;
@@ -122,15 +128,32 @@ export async function fetchLatestAcceptedSubmission(
         timestamp: string;
       }[];
     };
-  }>(query, { offset: 0, limit: 20, questionSlug: slug });
+  };
 
-  const accepted = data.questionSubmissionList.submissions.find(
+  try {
+    data = await gql(query, { offset: 0, limit: 20, questionSlug: slug });
+  } catch (err) {
+    console.error("[LeetSync] Failed to fetch submission list:", err);
+    return null;
+  }
+
+  const submissions = data.questionSubmissionList?.submissions ?? [];
+  const accepted = submissions.find(
     (s) => s.statusDisplay === "Accepted"
   );
-  if (!accepted) return null;
+  if (!accepted) {
+    console.warn("[LeetSync] No accepted submission found for:", slug);
+    return null;
+  }
 
   // Fetch full code for the accepted submission
-  const code = await fetchSubmissionCode(accepted.id);
+  let code = "";
+  try {
+    code = await fetchSubmissionCode(accepted.id);
+  } catch (err) {
+    console.error("[LeetSync] Failed to fetch submission code:", err);
+    return null;
+  }
 
   return {
     code,
@@ -153,7 +176,7 @@ export async function fetchSubmissionCode(submissionId: string): Promise<string>
   const data = await gql<{
     submissionDetails: { code: string };
   }>(query, { submissionId: parseInt(submissionId) });
-  return data.submissionDetails.code;
+  return data.submissionDetails?.code ?? "";
 }
 
 // ─── Map language to file extension ──────────────────────────

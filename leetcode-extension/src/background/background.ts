@@ -12,6 +12,7 @@ import {
   recordProblemStart,
   getProblemElapsed,
 } from "../services/storage";
+import { getToken } from "../services/storage-adapter";
 import { fetchProblemMeta, fetchLatestAcceptedSubmission } from "../services/leetcode";
 import { pushSolutionToGitHub } from "../services/github";
 import { scheduleRevision, getDueRevisions } from "../services/revision";
@@ -58,30 +59,53 @@ async function handleAccepted(payload: {
   questionId?: number;
 }): Promise<void> {
   const { slug } = payload;
-  if (!slug) return;
+  if (!slug) {
+    console.warn("[LeetSync] handleAccepted called with no slug");
+    return;
+  }
 
-  // Debounce: avoid processing same problem twice within 10 seconds
-  const key = `leetsync_last_accepted_${slug}`;
-  const last = (await chrome.storage.local.get([key]))[key] as number | undefined;
-  if (last && Date.now() - last < 10_000) return;
-  await chrome.storage.local.set({ [key]: Date.now() });
+  // Debounce: avoid processing same problem twice within 15 seconds
+  const debounceKey = `leetsync_last_accepted_${slug}`;
+  const debounceData = await chrome.storage.local.get([debounceKey]);
+  const last = debounceData[debounceKey] as number | undefined;
+  if (last && Date.now() - last < 15_000) {
+    console.log("[LeetSync] Debounced duplicate acceptance for:", slug);
+    return;
+  }
+  await chrome.storage.local.set({ [debounceKey]: Date.now() });
+
+  // Check auth — user must be logged in to save to Neon DB
+  const token = await getToken();
+  if (!token) {
+    console.warn("[LeetSync] No auth token found. Please sign in via the LeetSync popup.");
+    showNotification(
+      "⚠️ Sign in to LeetSync to save your solutions to the cloud.",
+      slug
+    );
+    return;
+  }
+
+  console.log("[LeetSync] Processing accepted submission for:", slug);
 
   try {
-    // 1. Fetch metadata from LeetCode GraphQL
+    // 1. Fetch problem metadata from LeetCode GraphQL
     showNotification("🔍 Fetching problem data…", slug);
     const meta = await fetchProblemMeta(slug);
+    console.log("[LeetSync] Fetched meta:", meta.title, meta.difficulty);
 
     // 2. Fetch full submission code
     const submission = await fetchLatestAcceptedSubmission(slug);
     if (!submission) {
-      showNotification("⚠️ Could not retrieve submission code.", slug);
+      showNotification("⚠️ Could not retrieve submission code from LeetCode.", slug);
+      console.error("[LeetSync] No accepted submission returned for:", slug);
       return;
     }
+    console.log("[LeetSync] Fetched submission:", submission.language, submission.runtime);
 
     // 3. Calculate time spent on the problem
     const timeSpentMs = await getProblemElapsed(slug);
 
-    // 4. Save problem to local storage
+    // 4. Save problem to Neon DB
     await saveProblem({
       id: meta.id,
       title: meta.title,
@@ -101,17 +125,30 @@ async function handleAccepted(payload: {
       mistake: "",
       observation: "",
     });
+    console.log("[LeetSync] Problem saved to Neon DB:", meta.id);
 
-    // 5. Add to today's journal
+    // 5. Add to today's journal in Neon DB
     const dateStr = new Date().toISOString().split("T")[0];
     await addToJournal(dateStr, meta.id, timeSpentMs);
+    console.log("[LeetSync] Journal updated for date:", dateStr);
 
-    // 6. Schedule revision (spaced repetition)
+    // 6. Schedule spaced repetition revision in Neon DB
     await scheduleRevision(meta.id);
+    console.log("[LeetSync] Revision scheduled for:", meta.id);
 
-    // 7. Push to GitHub (non-blocking, shows notification on result)
+    // 7. Push to GitHub (non-blocking)
+    const settings = await getSettings();
+    if (!settings.githubToken || !settings.githubUsername) {
+      showNotification(
+        `✅ Solved ${meta.title}! Saved to cloud. Configure GitHub in Settings to auto-commit.`,
+        slug
+      );
+      return;
+    }
+
     pushSolutionToGitHub(meta, submission)
       .then((githubUrl) => {
+        console.log("[LeetSync] Pushed to GitHub:", githubUrl);
         showNotification(
           `✅ Solved ${meta.title}! Committed to GitHub.`,
           slug,
@@ -119,21 +156,25 @@ async function handleAccepted(payload: {
         );
       })
       .catch((err) => {
+        console.error("[LeetSync] GitHub push failed:", err);
         showNotification(
-          `✅ Saved locally! GitHub sync failed: ${err.message}`,
+          `✅ Saved to cloud! GitHub push failed: ${err.message}`,
           slug
         );
       });
 
   } catch (err) {
     console.error("[LeetSync] Error processing acceptance:", err);
-    showNotification("❌ LeetSync: Failed to process submission.", slug);
+    showNotification(
+      `❌ LeetSync error: ${err instanceof Error ? err.message : String(err)}`,
+      slug
+    );
   }
 }
 
 // ─── Notifications ───────────────────────────────────────────
 function showNotification(message: string, context: string, url?: string) {
-  chrome.notifications.create(`leetsync-${Date.now()}`, {
+  chrome.notifications.create(`leetsync-${context}-${Date.now()}`, {
     type: "basic",
     iconUrl: "icons/icon48.png",
     title: "LeetSync",
@@ -144,28 +185,31 @@ function showNotification(message: string, context: string, url?: string) {
 
 // ─── Chrome Alarms: Daily revision reminder ───────────────────
 chrome.alarms.create("daily-revision-check", {
-  periodInMinutes: 60 * 24, // Once per day
-  when: getNextMidnight(),
+  periodInMinutes: 60 * 24,
+  when: getNextMorning(),
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === "daily-revision-check") {
+    const token = await getToken();
+    if (!token) return; // Not logged in, skip
     const due = await getDueRevisions();
     if (due.length > 0) {
       chrome.notifications.create("leetsync-revision", {
         type: "basic",
         iconUrl: "icons/icon48.png",
         title: `📚 LeetSync — ${due.length} Revision${due.length > 1 ? "s" : ""} Due`,
-        message: due
-          .slice(0, 3)
-          .map((r) => `• ${r.title}`)
-          .join("\n") + (due.length > 3 ? `\n…and ${due.length - 3} more` : ""),
+        message:
+          due
+            .slice(0, 3)
+            .map((r) => `• ${r.title}`)
+            .join("\n") + (due.length > 3 ? `\n…and ${due.length - 3} more` : ""),
       });
     }
   }
 });
 
-function getNextMidnight(): number {
+function getNextMorning(): number {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   d.setHours(8, 0, 0, 0); // 8 AM daily
