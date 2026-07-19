@@ -6,15 +6,33 @@
 
 import { getToken } from "./storage-adapter";
 
-// In production this will be your Vercel URL.
-// During local dev it proxies through Vite (see vite.config.web.ts).
+// Detect if we're inside a Chrome extension (popup/dashboard/background)
+const IS_EXTENSION =
+  typeof chrome !== "undefined" &&
+  typeof chrome.runtime !== "undefined" &&
+  typeof chrome.runtime.id === "string";
+
+// In the extension, we MUST use an absolute URL since relative /api
+// would resolve to chrome-extension://ID/api which doesn't exist.
+// In the web dashboard (Vercel), relative /api works fine.
 const API_BASE: string = (() => {
+  // Check for build-time env var first (set via Vite define)
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (import.meta as any).env?.VITE_API_URL || "/api";
+    const envUrl = (import.meta as any).env?.VITE_API_URL;
+    if (envUrl) return envUrl;
   } catch {
-    return "/api";
+    // ignore — not in Vite context
   }
+
+  // Extension must use absolute URL
+  if (IS_EXTENSION) {
+    // Points to your Vercel deployment — update this after deploying!
+    return "https://leetcode-extension.vercel.app/api";
+  }
+
+  // Web dashboard uses relative path (Vite proxy or Vercel rewrites handle it)
+  return "/api";
 })();
 
 async function request<T>(
