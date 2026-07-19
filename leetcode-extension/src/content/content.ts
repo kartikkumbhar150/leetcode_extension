@@ -1,9 +1,21 @@
 // ============================================================
 // content.ts — Content Script injected on leetcode.com/*
-// Detects accepted submissions and relays them to background
+// Detects accepted submissions and relays them to background.
+// Only fires when the user has enabled tracking via the toggle.
 // ============================================================
 
 import { recordProblemStart } from "../services/storage";
+
+const TRACKING_KEY = "leetsync_tracking_enabled";
+
+/** Returns true only if the user has switched tracking ON in the popup. */
+function isTrackingEnabled(): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([TRACKING_KEY], (result) => {
+      resolve(result[TRACKING_KEY] === true);
+    });
+  });
+}
 
 // Extract the problem slug from the URL: /problems/<slug>/
 function getProblemSlug(): string | null {
@@ -14,6 +26,8 @@ function getProblemSlug(): string | null {
 // ─── Track when user lands on a problem ──────────────────────
 const slug = getProblemSlug();
 if (slug) {
+  // Still track timing regardless of toggle (cheap, non-intrusive)
+  recordProblemStart(slug);
   chrome.runtime.sendMessage({ type: "PROBLEM_OPENED", slug });
 }
 
@@ -21,12 +35,23 @@ if (slug) {
 let lastFiredSlug = "";
 let lastFiredTime = 0;
 
-function fireAccepted(slug: string, data?: Record<string, unknown>) {
+async function fireAccepted(slug: string, data?: Record<string, unknown>) {
+  // Gate: don't do anything if tracking is off
+  const enabled = await isTrackingEnabled();
+  if (!enabled) {
+    console.log("[LeetSync] Tracking is OFF — ignoring acceptance for:", slug);
+    return;
+  }
+
   const now = Date.now();
-  if (slug === lastFiredSlug && now - lastFiredTime < 15_000) return;
+  if (slug === lastFiredSlug && now - lastFiredTime < 15_000) {
+    console.log("[LeetSync] Debounced duplicate acceptance for:", slug);
+    return;
+  }
   lastFiredSlug = slug;
   lastFiredTime = now;
 
+  console.log("[LeetSync] Tracking ON — firing ACCEPTED for:", slug);
   chrome.runtime.sendMessage({
     type: "ACCEPTED_FETCH",
     payload: {
@@ -42,7 +67,7 @@ function fireAccepted(slug: string, data?: Record<string, unknown>) {
 // ─── Strategy 1: Intercept XHR/fetch submission check ────────
 // LeetCode uses two known patterns for polling:
 //   - /submissions/detail/<id>/check/   (legacy)
-//   - /check/    in body (GraphQL v2)
+//   - checkSubmission  (GraphQL v2)
 const originalFetch = window.fetch;
 window.fetch = async function (...args) {
   const response = await originalFetch.apply(this, args);
@@ -56,7 +81,6 @@ window.fetch = async function (...args) {
     const clone = response.clone();
     try {
       const data = await clone.json();
-      // Both old ("Accepted") and new ("accepted") status formats
       const status: string = data.status_msg ?? data.state ?? "";
       if (status.toLowerCase() === "accepted") {
         const currentSlug = getProblemSlug();
@@ -69,7 +93,6 @@ window.fetch = async function (...args) {
 };
 
 // ─── Strategy 2: DOM observer (fallback / GraphQL v2) ────────
-// LeetCode v2 / v3 result panel selectors (multiple fallbacks)
 const ACCEPTED_SELECTORS = [
   '[data-e2e-locator="submission-result"]',
   ".text-green-s",

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import {
   Zap, BarChart3, ExternalLink, Settings, RefreshCw,
-  Mail, Lock, Eye, EyeOff, LogOut, User, AlertCircle, Loader
+  Mail, Lock, Eye, EyeOff, LogOut, AlertCircle, Loader, Power
 } from "lucide-react";
 import type { Stats } from "../services/analytics";
 import { computeStats } from "../services/analytics";
@@ -11,6 +11,24 @@ import { authApi } from "../services/api-client";
 import { getToken, getStoredUser, setToken, setStoredUser, logout } from "../services/storage-adapter";
 import type { StoredUser } from "../services/storage-adapter";
 import "../index.css";
+
+// ─── Tracking toggle helpers ──────────────────────────────────
+const TRACKING_KEY = "leetsync_tracking_enabled";
+
+async function getTracking(): Promise<boolean> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([TRACKING_KEY], (result) => {
+      // Default to OFF — user must explicitly enable it
+      resolve(result[TRACKING_KEY] === true);
+    });
+  });
+}
+
+async function setTracking(enabled: boolean): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [TRACKING_KEY]: enabled }, resolve);
+  });
+}
 
 // ─── Mini Login Form ──────────────────────────────────────────
 function MiniAuth({ onSuccess }: { onSuccess: (u: StoredUser) => void }) {
@@ -121,15 +139,93 @@ function MiniInput({ icon, type, placeholder, value, onChange, suffix }: {
   );
 }
 
+// ─── Tracking Toggle Component ────────────────────────────────
+function TrackingToggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0.85rem 1rem",
+      background: enabled
+        ? "linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04))"
+        : "rgba(255,255,255,0.02)",
+      border: `1px solid ${enabled ? "rgba(245,158,11,0.35)" : "var(--border)"}`,
+      borderRadius: "var(--radius-sm)",
+      transition: "all 0.25s ease",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {/* Power icon with glow when enabled */}
+        <div style={{
+          width: 34, height: 34,
+          borderRadius: "50%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: enabled ? "rgba(245,158,11,0.2)" : "rgba(255,255,255,0.05)",
+          border: `1px solid ${enabled ? "rgba(245,158,11,0.5)" : "var(--border)"}`,
+          boxShadow: enabled ? "0 0 12px rgba(245,158,11,0.3)" : "none",
+          transition: "all 0.25s ease",
+        }}>
+          <Power size={15} color={enabled ? "var(--accent)" : "var(--text-muted)"} />
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 13, color: enabled ? "var(--accent)" : "var(--text-primary)" }}>
+            {enabled ? "Tracking ON" : "Tracking OFF"}
+          </div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>
+            {enabled ? "Will save & commit on acceptance" : "Toggle ON before submitting"}
+          </div>
+        </div>
+      </div>
+
+      {/* Toggle switch */}
+      <button
+        onClick={() => onChange(!enabled)}
+        style={{
+          position: "relative",
+          width: 44, height: 24,
+          borderRadius: 12,
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+          background: enabled
+            ? "linear-gradient(90deg, #f59e0b, #f97316)"
+            : "rgba(255,255,255,0.1)",
+          transition: "background 0.25s ease",
+          boxShadow: enabled ? "0 0 8px rgba(245,158,11,0.5)" : "none",
+          flexShrink: 0,
+        }}
+        aria-label={enabled ? "Disable tracking" : "Enable tracking"}
+      >
+        <span style={{
+          position: "absolute",
+          top: 3, left: enabled ? 23 : 3,
+          width: 18, height: 18,
+          borderRadius: "50%",
+          background: "#fff",
+          transition: "left 0.2s ease",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+        }} />
+      </button>
+    </div>
+  );
+}
+
 // ─── Authenticated Popup ──────────────────────────────────────
 function AuthenticatedPopup({ user, onLogout }: { user: StoredUser; onLogout: () => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [dueCount, setDueCount] = useState(0);
+  const [tracking, setTrackingState] = useState(false);
 
   useEffect(() => {
     computeStats().then(setStats);
     getDueRevisions().then((r) => setDueCount(r.length));
+    getTracking().then(setTrackingState);
   }, []);
+
+  async function handleTrackingChange(enabled: boolean) {
+    await setTracking(enabled);
+    setTrackingState(enabled);
+  }
 
   function openDashboard() {
     chrome.tabs.create({ url: "https://leetcode-extension.vercel.app" });
@@ -154,8 +250,13 @@ function AuthenticatedPopup({ user, onLogout }: { user: StoredUser; onLogout: ()
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Content */}
       <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+
+        {/* ── TRACKING TOGGLE — prominent at the top ── */}
+        <TrackingToggle enabled={tracking} onChange={handleTrackingChange} />
+
+        {/* Stats */}
         {stats ? (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "0.5rem" }}>
