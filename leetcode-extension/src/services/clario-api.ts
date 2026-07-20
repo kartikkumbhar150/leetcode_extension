@@ -1,10 +1,11 @@
 // ============================================================
 // clario-api.ts — Dedicated API client for the Clario backend
 // Base: https://clario-track-your-time.vercel.app/api
-// Attaches the same JWT token used by the extension.
+// All GET calls go through the stale-while-revalidate cache.
 // ============================================================
 
 import { getClarioToken } from "./storage-adapter";
+import { cachedGet, invalidate, invalidatePrefix, KEY, TTL } from "./api-cache";
 
 const BASE = "https://clario-track-your-time.vercel.app/api";
 
@@ -28,6 +29,11 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
   const text = await res.text();
   if (!text) return null as T;
   return JSON.parse(text) as T;
+}
+
+// Convenience wrapper for GET with cache
+function get<T>(key: string, path: string, ttl: number) {
+  return cachedGet<T>(key, () => req<T>("GET", path), ttl);
 }
 
 // ─── Auth ─────────────────────────────────────────────────────
@@ -98,48 +104,81 @@ export interface SubjectDistribution {
 }
 
 export const focusApi = {
-  startSession: (subject?: string, taskId?: string) =>
-    req<FocusSession>("POST", "/focus/start", { subject, taskId }),
+  startSession: async (subject?: string, taskId?: string) => {
+    const s = await req<FocusSession>("POST", "/focus/start", { subject, taskId });
+    // Invalidate live data after starting a session
+    invalidate(KEY.focusActive());
+    invalidate(KEY.focusTodayStats());
+    return s;
+  },
 
-  pauseSession: (id: string) =>
-    req<FocusSession>("POST", `/focus/pause/${id}`),
+  pauseSession: async (id: string) => {
+    const s = await req<FocusSession>("POST", `/focus/pause/${id}`);
+    invalidate(KEY.focusActive());
+    invalidate(KEY.focusTodayStats());
+    return s;
+  },
 
-  resumeSession: (id: string) =>
-    req<FocusSession>("POST", `/focus/resume/${id}`),
+  resumeSession: async (id: string) => {
+    const s = await req<FocusSession>("POST", `/focus/resume/${id}`);
+    invalidate(KEY.focusActive());
+    return s;
+  },
 
-  stopSession: (id: string, notes?: string) =>
-    req<FocusSession>("POST", `/focus/stop/${id}`, notes ? { notes } : undefined),
+  stopSession: async (id: string, notes?: string) => {
+    const s = await req<FocusSession>("POST", `/focus/stop/${id}`, notes ? { notes } : undefined);
+    // After stopping, all focus stats change
+    invalidatePrefix("focus:");
+    return s;
+  },
 
   getActiveSession: () =>
-    req<FocusSession | null>("GET", "/focus/active"),
+    get<FocusSession | null>(KEY.focusActive(), "/focus/active", TTL.ACTIVE),
 
   getSessions: (date?: string) =>
-    req<FocusSession[]>("GET", `/focus/sessions${date ? `?date=${date}` : ""}`),
+    get<FocusSession[]>(
+      KEY.focusSessions(date ?? "today"),
+      `/focus/sessions${date ? `?date=${date}` : ""}`,
+      TTL.MEDIUM
+    ),
 
   getTodayStats: () =>
-    req<TodayFocusStats>("GET", "/focus/stats/today"),
+    get<TodayFocusStats>(KEY.focusTodayStats(), "/focus/stats/today", TTL.LIVE),
 
   getWeeklyStats: () =>
-    req<WeeklyDay[]>("GET", "/focus/stats/weekly"),
+    get<WeeklyDay[]>(KEY.focusWeekly(), "/focus/stats/weekly", TTL.SHORT),
 
   getHeatmap: (month?: number, year?: number) => {
     const params = new URLSearchParams();
     if (month) params.set("month", String(month));
     if (year) params.set("year", String(year));
     const qs = params.toString();
-    return req<FocusHeatmap>("GET", `/focus/stats/heatmap${qs ? `?${qs}` : ""}`);
+    const m = month ?? new Date().getMonth() + 1;
+    const y = year ?? new Date().getFullYear();
+    return get<FocusHeatmap>(
+      KEY.focusHeatmap(m, y),
+      `/focus/stats/heatmap${qs ? `?${qs}` : ""}`,
+      TTL.MEDIUM
+    );
   },
 
-  getSubjectDistribution: (days?: number) =>
-    req<SubjectDistribution>("GET", `/focus/stats/subjects${days ? `?days=${days}` : ""}`),
-
-  setGoal: (hours: number) =>
-    req<{ goalSeconds: number; goalHours: number; currentSeconds: number; progress: number }>(
-      "PUT", "/focus/goal", { hours }
+  getSubjectDistribution: (days = 7) =>
+    get<SubjectDistribution>(
+      KEY.focusSubjects(days),
+      `/focus/stats/subjects${days ? `?days=${days}` : ""}`,
+      TTL.SHORT
     ),
 
+  setGoal: async (hours: number) => {
+    const r = await req<{ goalSeconds: number; goalHours: number; currentSeconds: number; progress: number }>(
+      "PUT", "/focus/goal", { hours }
+    );
+    invalidate(KEY.focusTodayStats());
+    return r;
+  },
+
   getStreak: () =>
-    req<{ currentStreak: number; todayActive: boolean }>("GET", "/focus/streak"),
+    get<{ currentStreak: number; todayActive: boolean }>(KEY.focusStreak(), "/focus/streak", TTL.LIVE),
 };
 
 // ─── Daily Journal ────────────────────────────────────────────
@@ -160,32 +199,62 @@ export interface ClarioJournal {
 }
 
 export const clarioJournalApi = {
-  createOrUpdate: (data: {
+  createOrUpdate: async (data: {
     date?: string; summary?: string; mood?: number; energy?: number; focus?: number;
     wins?: string[]; mistakes?: string[]; notes?: string; tags?: string[];
-  }) => req<ClarioJournal>("POST", "/journal", data),
+  }) => {
+    const r = await req<ClarioJournal>("POST", "/journal", data);
+    invalidate(KEY.journalToday());
+    if (data.date) invalidate(KEY.journalDate(data.date));
+    invalidatePrefix("journal:history");
+    return r;
+  },
 
-  getToday: () => req<ClarioJournal | null>("GET", "/journal/today"),
+  getToday: () =>
+    get<ClarioJournal | null>(KEY.journalToday(), "/journal/today", TTL.MEDIUM),
 
-  getByDate: (date: string) => req<ClarioJournal | null>("GET", `/journal/date/${date}`),
+  getByDate: (date: string) =>
+    get<ClarioJournal | null>(KEY.journalDate(date), `/journal/date/${date}`, TTL.MEDIUM),
 
   getHistory: (limit = 30, offset = 0) =>
-    req<ClarioJournal[]>("GET", `/journal/history?limit=${limit}&offset=${offset}`),
+    get<ClarioJournal[]>(
+      KEY.journalHistory(limit, offset),
+      `/journal/history?limit=${limit}&offset=${offset}`,
+      TTL.SHORT
+    ),
 
-  update: (id: string, data: Partial<ClarioJournal>) =>
-    req<ClarioJournal>("PUT", `/journal/${id}`, data),
+  update: async (id: string, data: Partial<ClarioJournal>) => {
+    const r = await req<ClarioJournal>("PUT", `/journal/${id}`, data);
+    invalidatePrefix("journal:");
+    return r;
+  },
 
-  addSubjects: (id: string, subjects: { subject: string; hoursSpent: number }[]) =>
-    req<unknown>("POST", `/journal/${id}/subjects`, { subjects }),
+  addSubjects: async (id: string, subjects: { subject: string; hoursSpent: number }[]) => {
+    const r = await req<unknown>("POST", `/journal/${id}/subjects`, { subjects });
+    invalidate(KEY.journalToday());
+    invalidatePrefix(`journal:date:`);
+    return r;
+  },
 
   getSubjects: (id: string) =>
-    req<{ _id: string; subject: string; hoursSpent: number }[]>("GET", `/journal/${id}/subjects`),
+    cachedGet(
+      `journal:subjects:${id}`,
+      () => req<{ _id: string; subject: string; hoursSpent: number }[]>("GET", `/journal/${id}/subjects`),
+      TTL.MEDIUM
+    ),
 
-  addProblems: (id: string, problems: { platform: string; problemId?: string; problemTitle: string }[]) =>
-    req<unknown>("POST", `/journal/${id}/problems`, { problems }),
+  addProblems: async (id: string, problems: { platform: string; problemId?: string; problemTitle: string }[]) => {
+    const r = await req<unknown>("POST", `/journal/${id}/problems`, { problems });
+    invalidate(KEY.journalToday());
+    return r;
+  },
 
   getProblems: (id: string) =>
-    req<{ _id: string; platform: string; problemId?: string; problemTitle: string }[]>("GET", `/journal/${id}/problems`),
+    cachedGet(
+      `journal:problems:${id}`,
+      () => req<{ _id: string; platform: string; problemId?: string; problemTitle: string }[]>("GET", `/journal/${id}/problems`),
+      TTL.MEDIUM
+    ),
 };
 
 // ─── Revision / Spaced Repetition ─────────────────────────────
@@ -227,40 +296,62 @@ export interface RevisionStats {
 }
 
 export const clarioRevisionApi = {
-  createTopic: (data: { title: string; subject: string; difficulty: string; description?: string; importance?: string }) =>
-    req<LearningTopic>("POST", "/revision/topics", data),
+  createTopic: async (data: { title: string; subject: string; difficulty: string; description?: string; importance?: string }) => {
+    const r = await req<LearningTopic>("POST", "/revision/topics", data);
+    invalidatePrefix("revision:");
+    return r;
+  },
 
-  getTopics: () => req<LearningTopic[]>("GET", "/revision/topics"),
+  getTopics: () =>
+    get<LearningTopic[]>(KEY.revisionTopics(), "/revision/topics", TTL.SHORT),
 
   getTopic: (id: string) =>
-    req<LearningTopic & { reviews: TopicReview[] }>("GET", `/revision/topics/${id}`),
-
-  updateTopic: (id: string, data: Partial<LearningTopic>) =>
-    req<LearningTopic>("PUT", `/revision/topics/${id}`, data),
-
-  deleteTopic: (id: string) => req<{ message: string }>("DELETE", `/revision/topics/${id}`),
-
-  getDueTopics: () => req<LearningTopic[]>("GET", "/revision/due"),
-
-  submitReview: (topicId: string, confidence: number, notes?: string) =>
-    req<{ topic: LearningTopic; review: TopicReview; nextReviewAt: string; nextIntervalDays: number }>(
-      "POST", `/revision/review/${topicId}`, { confidence, notes }
+    get<LearningTopic & { reviews: TopicReview[] }>(
+      KEY.revisionTopic(id), `/revision/topics/${id}`, TTL.SHORT
     ),
+
+  updateTopic: async (id: string, data: Partial<LearningTopic>) => {
+    const r = await req<LearningTopic>("PUT", `/revision/topics/${id}`, data);
+    invalidate(KEY.revisionTopic(id));
+    invalidate(KEY.revisionTopics());
+    return r;
+  },
+
+  deleteTopic: async (id: string) => {
+    const r = await req<{ message: string }>("DELETE", `/revision/topics/${id}`);
+    invalidatePrefix("revision:");
+    return r;
+  },
+
+  getDueTopics: () =>
+    get<LearningTopic[]>(KEY.revisionDue(), "/revision/due", TTL.SHORT),
+
+  submitReview: async (topicId: string, confidence: number, notes?: string) => {
+    const r = await req<{ topic: LearningTopic; review: TopicReview; nextReviewAt: string; nextIntervalDays: number }>(
+      "POST", `/revision/review/${topicId}`, { confidence, notes }
+    );
+    invalidatePrefix("revision:");
+    return r;
+  },
 
   getReviewHistory: (limit = 50) =>
-    req<TopicReview[]>("GET", `/revision/history?limit=${limit}`),
+    get<TopicReview[]>(`revision:history:${limit}`, `/revision/history?limit=${limit}`, TTL.SHORT),
 
   getQueue: () =>
-    req<{ dueToday: number; dueTomorrow: number; dueThisWeek: number }>("GET", "/revision/queue"),
-
-  getKnowledgeTree: () =>
-    req<Record<string, { total: number; mastered: number; active: number; topics: { _id: string; title: string; status: string; confidence: number; nextReviewAt?: string }[] }>>(
-      "GET", "/revision/tree"
+    get<{ dueToday: number; dueTomorrow: number; dueThisWeek: number }>(
+      KEY.revisionQueue(), "/revision/queue", TTL.SHORT
     ),
 
-  getRevisionStats: () => req<RevisionStats>("GET", "/revision/stats"),
+  getKnowledgeTree: () =>
+    get<Record<string, { total: number; mastered: number; active: number; topics: { _id: string; title: string; status: string; confidence: number; nextReviewAt?: string }[] }>>(
+      KEY.revisionTree(), "/revision/tree", TTL.SHORT
+    ),
 
-  searchTopics: (q: string) => req<LearningTopic[]>("GET", `/revision/search?q=${encodeURIComponent(q)}`),
+  getRevisionStats: () =>
+    get<RevisionStats>(KEY.revisionStats(), "/revision/stats", TTL.SHORT),
+
+  searchTopics: (q: string) =>
+    req<LearningTopic[]>("GET", `/revision/search?q=${encodeURIComponent(q)}`),
 };
 
 // ─── Tasks ────────────────────────────────────────────────────
@@ -273,14 +364,21 @@ export interface ClarioTask {
 }
 
 export const clarioTasksApi = {
-  create: (taskName: string, date: string) =>
-    req<ClarioTask>("POST", "/tasks", { taskName, date }),
+  create: async (taskName: string, date: string) => {
+    const r = await req<ClarioTask>("POST", "/tasks", { taskName, date });
+    invalidate(KEY.tasks(date));
+    return r;
+  },
 
   getByDate: (date: string) =>
-    req<ClarioTask[]>("GET", `/tasks?date=${date}`),
+    get<ClarioTask[]>(KEY.tasks(date), `/tasks?date=${date}`, TTL.MEDIUM),
 
-  markCompleted: (id: string) =>
-    req<ClarioTask>("PUT", `/tasks/${id}/complete`),
+  markCompleted: async (id: string) => {
+    const r = await req<ClarioTask>("PUT", `/tasks/${id}/complete`);
+    // Invalidate all task caches since we don't know the date from ID alone
+    invalidatePrefix("tasks:");
+    return r;
+  },
 };
 
 // ─── Time Slots ───────────────────────────────────────────────
@@ -295,19 +393,36 @@ export interface TimeSlot {
 }
 
 export const slotsApi = {
-  create: (data: { date: string; timeRange: string; taskSelected?: string; category: string; productivityType: string }) =>
-    req<TimeSlot>("POST", "/slots", data),
+  create: async (data: { date: string; timeRange: string; taskSelected?: string; category: string; productivityType: string }) => {
+    const r = await req<TimeSlot>("POST", "/slots", data);
+    invalidate(KEY.slots(data.date));
+    invalidatePrefix("analytics:");
+    return r;
+  },
 
   getByDate: (date: string) =>
-    req<TimeSlot[]>("GET", `/slots?date=${date}`),
+    get<TimeSlot[]>(KEY.slots(date), `/slots?date=${date}`, TTL.MEDIUM),
 
-  update: (id: string, data: Partial<TimeSlot>) =>
-    req<TimeSlot>("PUT", `/slots/${id}`, data),
+  update: async (id: string, data: Partial<TimeSlot>) => {
+    const r = await req<TimeSlot>("PUT", `/slots/${id}`, data);
+    if (data.date) invalidate(KEY.slots(data.date));
+    invalidatePrefix("analytics:");
+    return r;
+  },
 
-  delete: (id: string) => req<{ message: string }>("DELETE", `/slots/${id}`),
+  delete: async (id: string) => {
+    const r = await req<{ message: string }>("DELETE", `/slots/${id}`);
+    invalidatePrefix("slots:");
+    invalidatePrefix("analytics:");
+    return r;
+  },
 
-  batchUpdate: (data: { date: string; timeRanges: string[]; taskSelected?: string; category: string; productivityType: string }) =>
-    req<TimeSlot[]>("PATCH", "/slots/batch", data),
+  batchUpdate: async (data: { date: string; timeRanges: string[]; taskSelected?: string; category: string; productivityType: string }) => {
+    const r = await req<TimeSlot[]>("PATCH", "/slots/batch", data);
+    invalidate(KEY.slots(data.date));
+    invalidatePrefix("analytics:");
+    return r;
+  },
 };
 
 // ─── Analytics ────────────────────────────────────────────────
@@ -353,12 +468,13 @@ export interface AnalyticsHeatmap {
 export const analyticsApi = {
   getAnalytics: (period: "day" | "week", date?: string) => {
     const qs = date ? `?date=${date}` : "";
-    return req<AnalyticsData>("GET", `/analytics/${period}${qs}`);
+    const key = period === "day" ? KEY.analyticsDay(date ?? "today") : KEY.analyticsWeek(date ?? "today");
+    return get<AnalyticsData>(key, `/analytics/${period}${qs}`, TTL.SHORT);
   },
 
   getWeeklyTrend: (date?: string) => {
     const qs = date ? `?date=${date}` : "";
-    return req<WeeklyTrend>("GET", `/analytics/weekly-trend${qs}`);
+    return get<WeeklyTrend>(KEY.weeklyTrend(date ?? "today"), `/analytics/weekly-trend${qs}`, TTL.SHORT);
   },
 
   getHeatmapData: (month?: number, year?: number) => {
@@ -366,7 +482,9 @@ export const analyticsApi = {
     if (month) params.set("month", String(month));
     if (year) params.set("year", String(year));
     const qs = params.toString();
-    return req<AnalyticsHeatmap>("GET", `/analytics/heatmap${qs ? `?${qs}` : ""}`);
+    const m = month ?? new Date().getMonth() + 1;
+    const y = year ?? new Date().getFullYear();
+    return get<AnalyticsHeatmap>(KEY.heatmap(m, y), `/analytics/heatmap${qs ? `?${qs}` : ""}`, TTL.MEDIUM);
   },
 };
 
@@ -389,7 +507,15 @@ export interface AIInsightsData {
 }
 
 export const aiApi = {
-  getInsights: () => req<AIInsightsData>("GET", "/ai/insights"),
+  // AI insights are expensive — cache for 5 minutes
+  getInsights: () =>
+    get<AIInsightsData>(KEY.aiInsights(), "/ai/insights", TTL.LONG),
+
+  // Force-refresh bypasses cache
+  refreshInsights: () => {
+    invalidate(KEY.aiInsights());
+    return get<AIInsightsData>(KEY.aiInsights(), "/ai/insights", TTL.LONG);
+  },
 };
 
 // ─── Reports ──────────────────────────────────────────────────
@@ -435,21 +561,32 @@ export interface ReportData {
 }
 
 export const reportsApi = {
+  // Reports are expensive — cache for 5 minutes
   getReport: (startDate: string, endDate: string) =>
-    req<ReportData>("GET", `/reports?startDate=${startDate}&endDate=${endDate}`),
+    get<ReportData>(KEY.report(startDate, endDate), `/reports?startDate=${startDate}&endDate=${endDate}`, TTL.LONG),
 };
 
 // ─── User ─────────────────────────────────────────────────────
 export const userApi = {
-  getCategories: () => req<string[]>("GET", "/users/categories"),
-  updateCategories: (categories: string[]) =>
-    req<string[]>("PUT", "/users/categories", { categories }),
+  getCategories: () =>
+    get<string[]>(KEY.userCategories(), "/users/categories", TTL.LONG),
+
+  updateCategories: async (categories: string[]) => {
+    const r = await req<string[]>("PUT", "/users/categories", { categories });
+    invalidate(KEY.userCategories());
+    return r;
+  },
+
   getProfile: () =>
-    req<{ _id: string; name: string; email: string; profilePhoto: string; categories: string[] }>(
-      "GET", "/users/profile"
+    get<{ _id: string; name: string; email: string; profilePhoto: string; categories: string[] }>(
+      KEY.userProfile(), "/users/profile", TTL.LONG
     ),
-  updateProfile: (data: { name?: string; profilePhoto?: string }) =>
-    req<{ _id: string; name: string; email: string; profilePhoto: string; categories: string[] }>(
+
+  updateProfile: async (data: { name?: string; profilePhoto?: string }) => {
+    const r = await req<{ _id: string; name: string; email: string; profilePhoto: string; categories: string[] }>(
       "PUT", "/users/profile", data
-    ),
+    );
+    invalidate(KEY.userProfile());
+    return r;
+  },
 };

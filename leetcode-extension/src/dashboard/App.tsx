@@ -25,6 +25,7 @@ import AuthPage from "./AuthPage";
 import LandingPage from "./LandingPage";
 import { getToken, getStoredUser, logout } from "../services/storage-adapter";
 import type { StoredUser } from "../services/storage-adapter";
+import { focusApi, clarioTasksApi, analyticsApi } from "../services/clario-api";
 
 
 
@@ -86,6 +87,16 @@ export default function App() {
     if (!user) return;
     computeStats().then(setStats);
     getDueRevisions().then((r) => setDueCount(r.length));
+
+    // Warm-up: pre-fetch common Clario endpoints in background
+    // so they're cached before the user navigates to those tabs
+    const today = new Date().toISOString().split("T")[0];
+    Promise.allSettled([
+      focusApi.getTodayStats(),
+      focusApi.getActiveSession(),
+      clarioTasksApi.getByDate(today),
+      analyticsApi.getAnalytics("day"),
+    ]).catch(() => {}); // fire-and-forget; errors are silently ignored
   }, [user]);
 
   async function handleLogout() {
