@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { Zap, GitCommit, BarChart2, Brain, BookOpen, Clock, CheckSquare, Cpu, FileText, Layout } from "lucide-react";
+import { Zap, GitCommit, BarChart2, Brain, BookOpen, Clock, CheckSquare, Cpu, FileText, Layout, X, Menu, Rocket, CheckCircle2, Calendar, Sparkles, ClipboardList, Search, Lock, PlusCircle, Target, FolderDown, Wrench, Key, Heart } from "lucide-react";
 import AuthPage from "./AuthPage";
 import type { StoredUser } from "../services/storage-adapter";
 
@@ -96,7 +96,7 @@ function LandingNav({ onLogin, onSignup }: { onLogin: () => void; onSignup: () =
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <Zap size={22} color="#f59e0b" fill="#f59e0b" />
-          <span style={{ fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.02em", background: "linear-gradient(135deg,#f59e0b,#fde68a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>LeetSync</span>
+          <span style={{ fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.02em", background: "linear-gradient(135deg,#f59e0b,#fde68a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>uCode</span>
         </div>
 
         {/* Desktop links */}
@@ -125,9 +125,9 @@ function LandingNav({ onLogin, onSignup }: { onLogin: () => void; onSignup: () =
         </div>
 
         {/* Mobile hamburger */}
-        <button className="landing-hamburger" onClick={() => setMenuOpen(v => !v)}
+          <button className="landing-hamburger" onClick={() => setMenuOpen(v => !v)}
           style={{ display: "none", background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "#e6edf3", padding: "0.4rem 0.6rem", borderRadius: 7, cursor: "pointer", fontSize: 18, flexShrink: 0 }}>
-          {menuOpen ? "✕" : "☰"}
+          {menuOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
 
@@ -193,13 +193,13 @@ function HeroSection({ onLogin, onSignup }: { onLogin: () => void; onSignup: () 
           <span style={{ background: "linear-gradient(135deg,#f59e0b 0%,#fbbf24 50%,#fde68a 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
             LeetCode Solutions
           </span>
-          <br />+ full productivity suite ⚡
+          <br />+ full productivity suite <Zap size={40} style={{ display: "inline", verticalAlign: "middle", color: "#f59e0b" }} />
         </motion.h1>
 
         {/* Description */}
         <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
           style={{ color: "rgba(139,148,158,1)", fontSize: "1.05rem", lineHeight: 1.75, marginBottom: "2.5rem", maxWidth: 600, margin: "0 auto 2.5rem" }}>
-          LeetSync auto-pushes your code to GitHub the moment you're accepted,
+          uCode auto-pushes your code to GitHub the moment you're accepted,
           schedules Anki-style revisions, tracks your time, and includes a curated
           <strong style={{ color: "#e6edf3" }}> DSA Pattern Sheet</strong> — all free.
         </motion.p>
@@ -212,7 +212,7 @@ function HeroSection({ onLogin, onSignup }: { onLogin: () => void; onSignup: () 
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 0 48px rgba(245,158,11,0.65), 0 8px 32px rgba(0,0,0,0.5)"; }}
             onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 0 32px rgba(245,158,11,0.45), 0 4px 20px rgba(0,0,0,0.4)"; }}
           >
-            🚀 Create Free Account
+            <Rocket size={16} /> Create Free Account
           </button>
           <button onClick={onLogin} id="hero-login-btn"
             style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", color: "rgba(230,237,243,0.8)", fontWeight: 600, fontSize: 16, padding: "0.85rem 1.75rem", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", cursor: "pointer", backdropFilter: "blur(8px)", transition: "all 0.2s" }}
@@ -248,7 +248,7 @@ function HeroSection({ onLogin, onSignup }: { onLogin: () => void; onSignup: () 
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f56" }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ffbd2e" }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#27c93f" }} />
-              <span style={{ fontSize: 11, color: "rgba(139,148,158,0.7)", marginLeft: 8, fontFamily: "monospace" }}>✅ Accepted — Two Sum (#1)</span>
+              <span style={{ fontSize: 11, color: "rgba(139,148,158,0.7)", marginLeft: 8, fontFamily: "monospace", display: "flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={12} color="#27c93f" /> Accepted — Two Sum (#1)</span>
             </div>
             {/* Code */}
             <pre style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12.5, lineHeight: 1.8, color: "#cbd5e1", background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "0.875rem", overflow: "hidden", margin: 0, border: "1px solid rgba(255,255,255,0.05)" }}>
@@ -270,8 +270,8 @@ function HeroSection({ onLogin, onSignup }: { onLogin: () => void; onSignup: () 
                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
                 Pushed to GitHub
               </motion.span>
-              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(245,158,11,0.1)", color: "#f59e0b", padding: "3px 10px", borderRadius: 6, border: "1px solid rgba(245,158,11,0.2)" }}>📅 Revision: Day 1 of 7</span>
-              <span style={{ fontSize: 11, fontWeight: 600, background: "rgba(99,102,241,0.1)", color: "#a78bfa", padding: "3px 10px", borderRadius: 6, border: "1px solid rgba(99,102,241,0.2)" }}>🧠 Array · Hash Map</span>
+              <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(245,158,11,0.1)", color: "#f59e0b", padding: "3px 10px", borderRadius: 6, border: "1px solid rgba(245,158,11,0.2)", display: "flex", alignItems: "center", gap: 4 }}><Calendar size={12} /> Revision: Day 1 of 7</span>
+              <span style={{ fontSize: 11, fontWeight: 600, background: "rgba(99,102,241,0.1)", color: "#a78bfa", padding: "3px 10px", borderRadius: 6, border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", gap: 4 }}><Brain size={12} /> Array · Hash Map</span>
             </div>
           </motion.div>
         </motion.div>
@@ -361,7 +361,7 @@ function FeaturesSection() {
   return (
     <section id="features" style={{ padding: "6rem 1.5rem" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <SectionHeader tag="✨ Features" title={<>Everything you need to <GradText>master LeetCode</GradText></>} desc="Auto-sync, revision scheduling, productivity tracking, and AI insights — all in one Chrome extension." />
+        <SectionHeader tag="Features" title={<>Everything you need to <GradText>master LeetCode</GradText></>} desc="Auto-sync, revision scheduling, productivity tracking, and AI insights — all in one Chrome extension." />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1rem" }}>
           {FEATURES.map((f, i) => <FeatureCard key={f.title} {...f} index={i} />)}
         </div>
@@ -394,7 +394,7 @@ function DsaSheetSection() {
           {/* Left */}
           <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#f59e0b", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", padding: "4px 12px", borderRadius: 99, marginBottom: "1rem" }}>
-              📋 NEW — DSA Pattern Sheet
+              <ClipboardList size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: 6 }} /> NEW — DSA Pattern Sheet
             </span>
             <h2 style={{ fontSize: "clamp(1.6rem,3.5vw,2.4rem)", fontWeight: 800, lineHeight: 1.2, letterSpacing: "-0.02em", marginBottom: "1rem", color: "#e6edf3" }}>
               Track <GradText>53 curated problems</GradText> grouped by pattern
@@ -406,14 +406,14 @@ function DsaSheetSection() {
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {[
-                { icon: "✅", text: "Checkbox per problem — your progress saved locally" },
-                { icon: "🔍", text: "Search and filter by difficulty" },
-                { icon: "📊", text: "Per-pattern and overall progress bars" },
-                { icon: "🔐", text: "Admin-only add / edit / delete" },
-                { icon: "🆕", text: "\"Newly Created\" section for admins" },
-              ].map(({ icon, text }) => (
-                <div key={text} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "rgba(230,237,243,0.75)" }}>
-                  <span style={{ fontSize: 16, flexShrink: 0 }}>{icon}</span>
+                { icon: <CheckSquare size={16} />, text: "Checkbox per problem — your progress saved locally" },
+                { icon: <Search size={16} />, text: "Search and filter by difficulty" },
+                { icon: <BarChart2 size={16} />, text: "Per-pattern and overall progress bars" },
+                { icon: <Lock size={16} />, text: "Admin-only add / edit / delete" },
+                { icon: <PlusCircle size={16} />, text: "\"Newly Created\" section for admins" },
+              ].map(({ icon, text }, idx) => (
+                <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "rgba(230,237,243,0.75)" }}>
+                  <span style={{ flexShrink: 0, display: "flex", alignItems: "center", color: "#f59e0b" }}>{icon}</span>
                   {text}
                 </div>
               ))}
@@ -449,23 +449,23 @@ function DsaSheetSection() {
    HOW IT WORKS
 ════════════════════════════════════════════════════════════ */
 const HOW_STEPS = [
-  { num: "01", icon: "🎯", title: "Solve on LeetCode",    desc: "Content script monitors your tab for an accepted submission event in real time." },
-  { num: "02", icon: "⚡", title: "Code Fetched via API", desc: "Service worker calls LeetCode GraphQL to get your code, difficulty, and topic tags." },
-  { num: "03", icon: "🐙", title: "Pushed to GitHub",     desc: "Committed under LeetCode/[Topic]/[problem]/Solution.[lang] automatically." },
-  { num: "04", icon: "🧠", title: "Revision Scheduled",  desc: "LeetSync schedules 7 smart revision reminders so you never forget a problem." },
-  { num: "05", icon: "📊", title: "Track Everything",     desc: "Your time, focus sessions, tasks, and full analytics are synced to your dashboard." },
+  { num: "01", icon: <Target size={28} />, title: "Solve on LeetCode",    desc: "Content script monitors your tab for an accepted submission event in real time." },
+  { num: "02", icon: <Zap size={28} />, title: "Code Fetched via API", desc: "Service worker calls LeetCode GraphQL to get your code, difficulty, and topic tags." },
+  { num: "03", icon: <GitCommit size={28} />, title: "Pushed to GitHub",     desc: "Committed under LeetCode/[Topic]/[problem]/Solution.[lang] automatically." },
+  { num: "04", icon: <Brain size={28} />, title: "Revision Scheduled",  desc: "uCode schedules 7 smart revision reminders so you never forget a problem." },
+  { num: "05", icon: <BarChart2 size={28} />, title: "Track Everything",     desc: "Your time, focus sessions, tasks, and full analytics are synced to your dashboard." },
 ];
 
 function HowItWorksSection() {
   return (
     <section id="how-it-works" style={{ padding: "6rem 1.5rem" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <SectionHeader tag="🔍 How It Works" title={<>From solve to <GradText>GitHub commit</GradText> in seconds</>} />
+        <SectionHeader tag="How It Works" title={<>From solve to <GradText>GitHub commit</GradText> in seconds</>} />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "1rem", position: "relative" }}>
           {HOW_STEPS.map(({ num, icon, title, desc }, i) => (
             <motion.div key={num} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.5, delay: i * 0.1 }}
               style={{ background: "rgba(22,27,34,0.7)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "1.5rem", backdropFilter: "blur(8px)", position: "relative" }}>
-              <div style={{ fontSize: 28, marginBottom: "0.75rem" }}>{icon}</div>
+              <div style={{ marginBottom: "0.75rem", color: "#f59e0b" }}>{icon}</div>
               <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "1.5rem", fontWeight: 700, color: "#f59e0b", opacity: 0.3, lineHeight: 1, position: "absolute", top: "1rem", right: "1rem" }}>{num}</div>
               <div style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.45rem", color: "#e6edf3" }}>{title}</div>
               <div style={{ fontSize: 13, color: "rgba(139,148,158,0.9)", lineHeight: 1.65 }}>{desc}</div>
@@ -482,29 +482,29 @@ function HowItWorksSection() {
 ════════════════════════════════════════════════════════════ */
 const INSTALL_STEPS = [
   {
-    num: 1, emoji: "📁", title: "Download Extension Files", desc: "Get the pre-built dist/ folder from Google Drive.",
+    num: 1, emoji: <FolderDown size={20} />, title: "Download Extension Files", desc: "Get the pre-built dist/ folder from Google Drive.",
     substeps: [
       <><a href="https://drive.google.com/drive/folders/1782kGZje5-djm6OoCpGxnYJ0Q4UklPac?usp=sharing" target="_blank" rel="noopener noreferrer" style={{ color: "#f59e0b", textDecoration: "none" }}>Open the Google Drive folder</a></>,
       <>Right-click → <strong style={{ color: "#e6edf3" }}>Download</strong> as ZIP</>,
-      <>Extract to a permanent folder e.g. <code style={{ fontFamily: "monospace", fontSize: 12, background: "rgba(0,0,0,0.4)", padding: "2px 7px", borderRadius: 4, color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>Documents/LeetSync/</code></>,
+      <>Extract to a permanent folder e.g. <code style={{ fontFamily: "monospace", fontSize: 12, background: "rgba(0,0,0,0.4)", padding: "2px 7px", borderRadius: 4, color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>Documents/uCode/</code></>,
     ],
   },
   {
-    num: 2, emoji: "🔧", title: "Load into Chrome", desc: "Enable Developer Mode and load the unpacked folder.",
+    num: 2, emoji: <Wrench size={20} />, title: "Load into Chrome", desc: "Enable Developer Mode and load the unpacked folder.",
     substeps: [
       <>Go to <code style={{ fontFamily: "monospace", fontSize: 12, background: "rgba(0,0,0,0.4)", padding: "2px 7px", borderRadius: 4, color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>chrome://extensions</code></>,
       <>Toggle <strong style={{ color: "#e6edf3" }}>Developer mode</strong> ON (top-right)</>,
       <>Click <strong style={{ color: "#e6edf3" }}>Load unpacked</strong> → select extracted folder</>,
-      <>⚡ LeetSync icon appears in your Chrome toolbar!</>,
+      <><Zap size={12} style={{ display: "inline" }} /> uCode icon appears in your Chrome toolbar!</>,
     ],
   },
   {
-    num: 3, emoji: "🔑", title: "Connect GitHub", desc: "Generate a Personal Access Token and save it in Settings.",
+    num: 3, emoji: <Key size={20} />, title: "Connect GitHub", desc: "Generate a Personal Access Token and save it in Settings.",
     substeps: [
       <><a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" style={{ color: "#f59e0b", textDecoration: "none" }}>github.com/settings/tokens</a> → Generate classic token</>,
-      <>Check the <strong style={{ color: "#e6edf3" }}>✅ repo</strong> scope → Generate &amp; copy</>,
-      <>Click ⚡ LeetSync icon → <strong style={{ color: "#e6edf3" }}>Settings</strong> → paste token</>,
-      <>Enter your GitHub username &amp; repo name → <strong style={{ color: "#e6edf3" }}>Save</strong> 🎉</>,
+      <>Check the <strong style={{ color: "#e6edf3" }}>repo</strong> scope → Generate &amp; copy</>,
+      <>Click <Zap size={12} style={{ display: "inline" }} /> uCode icon → <strong style={{ color: "#e6edf3" }}>Settings</strong> → paste token</>,
+      <>Enter your GitHub username &amp; repo name → <strong style={{ color: "#e6edf3" }}>Save</strong></>,
     ],
   },
 ];
@@ -513,7 +513,7 @@ function InstallSection() {
   return (
     <section id="install" style={{ padding: "6rem 1.5rem", background: "rgba(13,17,23,0.7)" }}>
       <div style={{ maxWidth: 820, margin: "0 auto" }}>
-        <SectionHeader tag="🚀 Installation" title={<>Get started in <GradText>3 simple steps</GradText></>} desc="No Chrome Web Store required. Load it directly — takes under 2 minutes." />
+        <SectionHeader tag="Installation" title={<>Get started in <GradText>3 simple steps</GradText></>} desc="No Chrome Web Store required. Load it directly — takes under 2 minutes." />
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {INSTALL_STEPS.map(({ num, emoji, title, desc, substeps }, idx) => (
             <motion.div key={num} initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.5, delay: idx * 0.12 }}
@@ -565,7 +565,7 @@ function CtaBanner({ onSignup }: { onSignup: () => void }) {
           onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 0 60px rgba(245,158,11,0.65)"; }}
           onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 0 40px rgba(245,158,11,0.45)"; }}
         >
-          🚀 Create Free Account
+          <Rocket size={16} /> Create Free Account
         </button>
       </motion.div>
     </section>
@@ -580,10 +580,10 @@ function LandingFooter() {
     <footer style={{ padding: "2rem 1.5rem", background: "rgba(13,17,23,0.95)", borderTop: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: "0.5rem" }}>
         <Zap size={18} color="#f59e0b" fill="#f59e0b" />
-        <span style={{ fontWeight: 800, fontSize: "1rem", background: "linear-gradient(135deg,#f59e0b,#fde68a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>LeetSync</span>
+        <span style={{ fontWeight: 800, fontSize: "1rem", background: "linear-gradient(135deg,#f59e0b,#fde68a)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>uCode</span>
       </div>
       <p style={{ fontSize: 13, color: "rgba(72,79,88,1)" }}>Auto-commit · Spaced Repetition · Time Tracking · DSA Pattern Sheet</p>
-      <p style={{ fontSize: 12, color: "rgba(72,79,88,0.8)", marginTop: 4 }}>MIT License © 2026 · Built with ❤️ for the DSA community</p>
+      <p style={{ fontSize: 12, color: "rgba(72,79,88,0.8)", marginTop: 4 }}>MIT License &copy; 2026 · Built with <Heart size={12} fill="#ef4444" color="#ef4444" style={{ display: "inline", verticalAlign: "middle" }} /> for the DSA community</p>
     </footer>
   );
 }

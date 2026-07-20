@@ -1,4 +1,4 @@
-# ⚡ LeetSync — Auto GitHub Commit & Revision Tracker
+# ⚡ uCode — Auto GitHub Commit & Revision Tracker
 
 > A premium Chrome Extension (Manifest V3) that automatically commits your accepted LeetCode solutions to GitHub, tracks your progress with spaced-repetition revision scheduling, and displays beautiful analytics dashboards.
 
@@ -51,8 +51,8 @@ YourRepo/
 
 ### 1. Clone & Build
 ```bash
-git clone https://github.com/yourusername/leetsync-extension
-cd leetsync-extension
+git clone https://github.com/yourusername/ucode-extension
+cd ucode-extension
 npm install
 npm run build
 ```
@@ -64,13 +64,13 @@ npm run build
 4. Select the `dist/` folder
 
 ### 3. Configure GitHub
-1. Click the LeetSync icon in your Chrome toolbar
+1. Click the uCode icon in your Chrome toolbar
 2. Go to **Settings**
 3. Enter your **GitHub Personal Access Token** → [Generate one here](https://github.com/settings/tokens)
 4. Enter your **GitHub username** and **repository name**
 5. Click **Save Settings**
 
-> **Create the repository first** on GitHub (can be empty). LeetSync will populate it automatically.
+> **Create the repository first** on GitHub (can be empty). uCode will populate it automatically.
 
 ---
 
@@ -78,16 +78,16 @@ npm run build
 
 1. Go to [github.com/settings/tokens](https://github.com/settings/tokens)
 2. Click **Generate new token (classic)**
-3. Give it a name like `leetsync`
+3. Give it a name like `ucode`
 4. Check the ✅ `repo` scope
 5. Click **Generate token**
-6. Copy and paste it into LeetSync Settings
+6. Copy and paste it into uCode Settings
 
 ---
 
 ## 🧠 How Spaced Repetition Works
 
-When you solve a problem, LeetSync schedules 7 automatic revisions:
+When you solve a problem, uCode schedules 7 automatic revisions:
 
 ```
 Solved Today (19 Jul)

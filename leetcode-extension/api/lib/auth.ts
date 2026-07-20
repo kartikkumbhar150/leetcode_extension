@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-const JWT_SECRET = process.env.JWT_SECRET || "leetsync_dev_secret_change_in_prod";
+const JWT_SECRET = process.env.JWT_SECRET || "ucode_dev_secret_change_in_prod";
 const TOKEN_EXPIRY = "30d";
 
 export interface JWTPayload {

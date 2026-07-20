@@ -151,7 +151,7 @@ export default function App() {
         <div style={{ padding: "0.75rem 0.5rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <Zap size={18} color="var(--accent)" fill="var(--accent)" />
-            <span className="gradient-text" style={{ fontWeight: 700, fontSize: 15 }}>LeetSync</span>
+            <span className="gradient-text" style={{ fontWeight: 700, fontSize: 15 }}>uCode</span>
           </div>
           {/* Mobile close button inside sidebar */}
           <button 

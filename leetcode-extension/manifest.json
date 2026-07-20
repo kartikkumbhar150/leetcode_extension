@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "LeetSync — Auto GitHub Commit & Revision",
+  "name": "uCode — Auto GitHub Commit & Revision",
   "version": "1.0.0",
   "description": "Auto-commit accepted LeetCode solutions to GitHub with spaced repetition revision, analytics dashboards, and AI-powered review.",
   "icons": {

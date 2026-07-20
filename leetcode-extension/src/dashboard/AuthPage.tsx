@@ -28,7 +28,7 @@ export default function AuthPage({ onSuccess, initialMode = "login" }: AuthPageP
     try {
       const name = fullName.trim() || email.split("@")[0];
 
-      // ── 1. LeetSync backend (primary — owns /api/problems, /api/revisions etc.) ──
+      // ── 1. uCode backend (primary — owns /api/problems, /api/revisions etc.) ──
       let lsUser: StoredUser | null = null;
       try {
         if (mode === "login") {
@@ -41,8 +41,8 @@ export default function AuthPage({ onSuccess, initialMode = "login" }: AuthPageP
           lsUser = { id: r.user.id, email: r.user.email, username: r.user.username, name: r.user.username };
         }
       } catch (lsErr) {
-        // LeetSync login failed — still try Clario so Productivity features work
-        console.warn("[LeetSync] auth failed:", lsErr instanceof Error ? lsErr.message : lsErr);
+        // uCode login failed — still try Clario so Productivity features work
+        console.warn("[uCode] auth failed:", lsErr instanceof Error ? lsErr.message : lsErr);
       }
 
       // ── 2. Clario backend (secondary — owns focus/analytics/tasks etc.) ──
@@ -50,7 +50,7 @@ export default function AuthPage({ onSuccess, initialMode = "login" }: AuthPageP
         if (mode === "login") {
           const r = await clarioAuth.login(email, password);
           await setClarioToken(r.token);
-          // If LeetSync failed, fall back to Clario identity
+          // If uCode failed, fall back to Clario identity
           if (!lsUser) {
             lsUser = { id: r._id, email: r.email, name: r.name, username: r.name };
           }
@@ -169,7 +169,7 @@ export default function AuthPage({ onSuccess, initialMode = "login" }: AuthPageP
               margin: 0,
             }}
           >
-            LeetSync
+            uCode
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
             Auto GitHub commits · Spaced Repetition · Analytics

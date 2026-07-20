@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 
 // Hardcoded admin credentials for DSA sheet management
-const ADMIN_EMAIL    = 'admin@leetsync.com';
+const ADMIN_EMAIL    = 'admin@ucode.com';
 const ADMIN_PASSWORD = 'kartikADM15';
 
 /**
  * Middleware: checks for admin credentials in X-Admin-Key header.
- * Format: X-Admin-Key: admin@leetsync.com:kartikADM15
+ * Format: X-Admin-Key: admin@ucode.com:kartikADM15
  */
 export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
   const headerKey = req.headers['x-admin-key'] as string | undefined;

@@ -50,11 +50,11 @@ export async function adapterRemove(key: string): Promise<void> {
 }
 
 // ─── JWT Token helpers ─────────────────────────────────────────
-const TOKEN_KEY        = "leetsync_jwt";
+const TOKEN_KEY        = "ucode_jwt";
 const CLARIO_TOKEN_KEY = "clario_jwt";
-const USER_KEY         = "leetsync_user";
+const USER_KEY         = "ucode_user";
 
-// LeetSync token (used by api-client.ts for /api/problems etc.)
+// uCode token (used by api-client.ts for /api/problems etc.)
 export async function getToken(): Promise<string | null> {
   return adapterGet<string | null>(TOKEN_KEY, null);
 }

@@ -10,7 +10,7 @@ export default defineConfig({
     emptyOutDir: false, // Don't wipe the main build output
     lib: {
       entry: resolve(__dirname, "src/content/content.ts"),
-      name: "LeetSyncContent",
+      name: "uCodeContent",
       fileName: () => "content.js",
       formats: ["iife"], // Self-contained, no imports
     },

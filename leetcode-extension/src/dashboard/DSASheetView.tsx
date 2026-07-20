@@ -7,7 +7,7 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────
 const BASE = "https://backend-gules-eta-27.vercel.app/api";
-const ADMIN_EMAIL = "admin@leetsync.com";
+const ADMIN_EMAIL = "admin@ucode.com";
 const ADMIN_PASS  = "kartikADM15";
 const STORAGE_KEY = "dsa_sheet_progress"; // localStorage key for per-user checkboxes
 

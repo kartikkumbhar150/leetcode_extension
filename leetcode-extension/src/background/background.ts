@@ -43,7 +43,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           break;
       }
     } catch (err) {
-      console.error("[LeetSync] Background error:", err);
+      console.error("[uCode] Background error:", err);
       sendResponse({ error: String(err) });
     }
   })();
@@ -60,16 +60,16 @@ async function handleAccepted(payload: {
 }): Promise<void> {
   const { slug } = payload;
   if (!slug) {
-    console.warn("[LeetSync] handleAccepted called with no slug");
+    console.warn("[uCode] handleAccepted called with no slug");
     return;
   }
 
   // Debounce: avoid processing same problem twice within 15 seconds
-  const debounceKey = `leetsync_last_accepted_${slug}`;
+  const debounceKey = `ucode_last_accepted_${slug}`;
   const debounceData = await chrome.storage.local.get([debounceKey]);
   const last = debounceData[debounceKey] as number | undefined;
   if (last && Date.now() - last < 15_000) {
-    console.log("[LeetSync] Debounced duplicate acceptance for:", slug);
+    console.log("[uCode] Debounced duplicate acceptance for:", slug);
     return;
   }
   await chrome.storage.local.set({ [debounceKey]: Date.now() });
@@ -77,30 +77,30 @@ async function handleAccepted(payload: {
   // Check auth — user must be logged in to save to Neon DB
   const token = await getToken();
   if (!token) {
-    console.warn("[LeetSync] No auth token found. Please sign in via the LeetSync popup.");
+    console.warn("[uCode] No auth token found. Please sign in via the uCode popup.");
     showNotification(
-      "⚠️ Sign in to LeetSync to save your solutions to the cloud.",
+      "⚠️ Sign in to uCode to save your solutions to the cloud.",
       slug
     );
     return;
   }
 
-  console.log("[LeetSync] Processing accepted submission for:", slug);
+  console.log("[uCode] Processing accepted submission for:", slug);
 
   try {
     // 1. Fetch problem metadata from LeetCode GraphQL
     showNotification("🔍 Fetching problem data…", slug);
     const meta = await fetchProblemMeta(slug);
-    console.log("[LeetSync] Fetched meta:", meta.title, meta.difficulty);
+    console.log("[uCode] Fetched meta:", meta.title, meta.difficulty);
 
     // 2. Fetch full submission code
     const submission = await fetchLatestAcceptedSubmission(slug);
     if (!submission) {
       showNotification("⚠️ Could not retrieve submission code from LeetCode.", slug);
-      console.error("[LeetSync] No accepted submission returned for:", slug);
+      console.error("[uCode] No accepted submission returned for:", slug);
       return;
     }
-    console.log("[LeetSync] Fetched submission:", submission.language, submission.runtime);
+    console.log("[uCode] Fetched submission:", submission.language, submission.runtime);
 
     // 3. Calculate time spent on the problem
     const timeSpentMs = await getProblemElapsed(slug);
@@ -125,16 +125,16 @@ async function handleAccepted(payload: {
       mistake: "",
       observation: "",
     });
-    console.log("[LeetSync] Problem saved to Neon DB:", meta.id);
+    console.log("[uCode] Problem saved to Neon DB:", meta.id);
 
     // 5. Add to today's journal in Neon DB
     const dateStr = new Date().toISOString().split("T")[0];
     await addToJournal(dateStr, meta.id, timeSpentMs);
-    console.log("[LeetSync] Journal updated for date:", dateStr);
+    console.log("[uCode] Journal updated for date:", dateStr);
 
     // 6. Schedule spaced repetition revision in Neon DB
     await scheduleRevision(meta.id);
-    console.log("[LeetSync] Revision scheduled for:", meta.id);
+    console.log("[uCode] Revision scheduled for:", meta.id);
 
     // 7. Push to GitHub (non-blocking)
     const settings = await getSettings();
@@ -148,7 +148,7 @@ async function handleAccepted(payload: {
 
     pushSolutionToGitHub(meta, submission)
       .then((githubUrl) => {
-        console.log("[LeetSync] Pushed to GitHub:", githubUrl);
+        console.log("[uCode] Pushed to GitHub:", githubUrl);
         showNotification(
           `✅ Solved ${meta.title}! Committed to GitHub.`,
           slug,
@@ -156,7 +156,7 @@ async function handleAccepted(payload: {
         );
       })
       .catch((err) => {
-        console.error("[LeetSync] GitHub push failed:", err);
+        console.error("[uCode] GitHub push failed:", err);
         showNotification(
           `✅ Saved to cloud! GitHub push failed: ${err.message}`,
           slug
@@ -164,9 +164,9 @@ async function handleAccepted(payload: {
       });
 
   } catch (err) {
-    console.error("[LeetSync] Error processing acceptance:", err);
+    console.error("[uCode] Error processing acceptance:", err);
     showNotification(
-      `❌ LeetSync error: ${err instanceof Error ? err.message : String(err)}`,
+      `❌ uCode error: ${err instanceof Error ? err.message : String(err)}`,
       slug
     );
   }
@@ -174,10 +174,10 @@ async function handleAccepted(payload: {
 
 // ─── Notifications ───────────────────────────────────────────
 function showNotification(message: string, context: string, url?: string) {
-  chrome.notifications.create(`leetsync-${context}-${Date.now()}`, {
+  chrome.notifications.create(`ucode-${context}-${Date.now()}`, {
     type: "basic",
     iconUrl: "icons/icon48.png",
-    title: "LeetSync",
+    title: "uCode",
     message,
     buttons: url ? [{ title: "View on GitHub" }] : [],
   });
@@ -195,10 +195,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (!token) return; // Not logged in, skip
     const due = await getDueRevisions();
     if (due.length > 0) {
-      chrome.notifications.create("leetsync-revision", {
+      chrome.notifications.create("ucode-revision", {
         type: "basic",
         iconUrl: "icons/icon48.png",
-        title: `📚 LeetSync — ${due.length} Revision${due.length > 1 ? "s" : ""} Due`,
+        title: `📚 uCode — ${due.length} Revision${due.length > 1 ? "s" : ""} Due`,
         message:
           due
             .slice(0, 3)

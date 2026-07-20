@@ -133,7 +133,7 @@ export async function fetchLatestAcceptedSubmission(
   try {
     data = await gql(query, { offset: 0, limit: 20, questionSlug: slug });
   } catch (err) {
-    console.error("[LeetSync] Failed to fetch submission list:", err);
+    console.error("[uCode] Failed to fetch submission list:", err);
     return null;
   }
 
@@ -142,7 +142,7 @@ export async function fetchLatestAcceptedSubmission(
     (s) => s.statusDisplay === "Accepted"
   );
   if (!accepted) {
-    console.warn("[LeetSync] No accepted submission found for:", slug);
+    console.warn("[uCode] No accepted submission found for:", slug);
     return null;
   }
 
@@ -151,7 +151,7 @@ export async function fetchLatestAcceptedSubmission(
   try {
     code = await fetchSubmissionCode(accepted.id);
   } catch (err) {
-    console.error("[LeetSync] Failed to fetch submission code:", err);
+    console.error("[uCode] Failed to fetch submission code:", err);
     return null;
   }
 

@@ -103,7 +103,7 @@ ${submission.code}
 
 ---
 
-*Auto-committed by [LeetSync](https://github.com/topics/leetsync) on ${new Date(submission.timestamp).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}*
+*Auto-committed by [uCode](https://github.com/topics/ucode) on ${new Date(submission.timestamp).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}*
 `;
 }
 
@@ -161,7 +161,7 @@ async function updateRootReadme(
   // We'll generate a minimal stats block; full stats come from storage
   const statsContent = `# 🚀 LeetCode Solutions
 
-Auto-synced by **LeetSync** Chrome Extension.
+Auto-synced by **uCode** Chrome Extension.
 
 > *Last updated: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}*
 `;

@@ -6,7 +6,7 @@
 
 import { recordProblemStart } from "../services/storage";
 
-const TRACKING_KEY = "leetsync_tracking_enabled";
+const TRACKING_KEY = "ucode_tracking_enabled";
 
 /** Returns true only if the user has switched tracking ON in the popup. */
 function isTrackingEnabled(): Promise<boolean> {
@@ -39,19 +39,19 @@ async function fireAccepted(slug: string, data?: Record<string, unknown>) {
   // Gate: don't do anything if tracking is off
   const enabled = await isTrackingEnabled();
   if (!enabled) {
-    console.log("[LeetSync] Tracking is OFF — ignoring acceptance for:", slug);
+    console.log("[uCode] Tracking is OFF — ignoring acceptance for:", slug);
     return;
   }
 
   const now = Date.now();
   if (slug === lastFiredSlug && now - lastFiredTime < 15_000) {
-    console.log("[LeetSync] Debounced duplicate acceptance for:", slug);
+    console.log("[uCode] Debounced duplicate acceptance for:", slug);
     return;
   }
   lastFiredSlug = slug;
   lastFiredTime = now;
 
-  console.log("[LeetSync] Tracking ON — firing ACCEPTED for:", slug);
+  console.log("[uCode] Tracking ON — firing ACCEPTED for:", slug);
   chrome.runtime.sendMessage({
     type: "ACCEPTED_FETCH",
     payload: {

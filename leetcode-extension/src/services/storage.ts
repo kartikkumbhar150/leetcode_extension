@@ -69,7 +69,7 @@ export async function getProblems(): Promise<Record<string, ProblemRecord>> {
     const { problems } = await problemsApi.getAll();
     return problems as Record<string, ProblemRecord>;
   } catch (err) {
-    console.warn("[LeetSync] Failed to fetch problems from API, returning empty:", err);
+    console.warn("[uCode] Failed to fetch problems from API, returning empty:", err);
     return {};
   }
 }
@@ -89,7 +89,7 @@ export async function getRevisions(): Promise<Record<string, RevisionEntry>> {
     const { revisions } = await revisionsApi.getAll();
     return revisions as Record<string, RevisionEntry>;
   } catch (err) {
-    console.warn("[LeetSync] Failed to fetch revisions from API:", err);
+    console.warn("[uCode] Failed to fetch revisions from API:", err);
     return {};
   }
 }
@@ -117,7 +117,7 @@ export async function getJournals(): Promise<Record<string, DayJournal>> {
     const { journals } = await journalsApi.getAll();
     return journals as Record<string, DayJournal>;
   } catch (err) {
-    console.warn("[LeetSync] Failed to fetch journals from API:", err);
+    console.warn("[uCode] Failed to fetch journals from API:", err);
     return {};
   }
 }
@@ -143,7 +143,7 @@ export async function getSettings(): Promise<AppSettings> {
     const { settings } = await settingsApi.get();
     return settings as AppSettings;
   } catch (err) {
-    console.warn("[LeetSync] Failed to fetch settings from API:", err);
+    console.warn("[uCode] Failed to fetch settings from API:", err);
     return {
       githubToken: "",
       githubUsername: "",
@@ -160,7 +160,7 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 }
 
 // ─── Contests (local-only for now — no API endpoint) ──────────
-const CONTEST_KEY = "leetsync_contests";
+const CONTEST_KEY = "ucode_contests";
 
 export async function getContests(): Promise<ContestEntry[]> {
   return adapterGet<ContestEntry[]>(CONTEST_KEY, []);
@@ -173,7 +173,7 @@ export async function addContest(entry: ContestEntry): Promise<void> {
 }
 
 // ─── Problem Timer (local-only — must work offline in extension) ─
-const START_TIME_KEY = "leetsync_problem_start_time";
+const START_TIME_KEY = "ucode_problem_start_time";
 
 export async function recordProblemStart(slug: string): Promise<void> {
   await adapterSet(START_TIME_KEY, { slug, startTime: Date.now() });

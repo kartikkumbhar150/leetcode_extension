@@ -1,4 +1,4 @@
-/* ── script.js — LeetSync Landing Page Interactions ── */
+/* ── script.js — uCode Landing Page Interactions ── */
 
 // ── Navbar scroll effect ───────────────────────────────────────
 const navbar = document.getElementById('navbar');

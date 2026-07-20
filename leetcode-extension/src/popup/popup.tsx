@@ -13,7 +13,7 @@ import type { StoredUser } from "../services/storage-adapter";
 import "../index.css";
 
 // ─── Tracking toggle helpers ──────────────────────────────────
-const TRACKING_KEY = "leetsync_tracking_enabled";
+const TRACKING_KEY = "ucode_tracking_enabled";
 
 async function getTracking(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -64,7 +64,7 @@ function MiniAuth({ onSuccess }: { onSuccess: (u: StoredUser) => void }) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.25rem" }}>
         <Zap size={20} color="var(--accent)" fill="var(--accent)" />
         <span className="gradient-text" style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.02em" }}>
-          LeetSync
+          uCode
         </span>
       </div>
 
@@ -237,7 +237,7 @@ function AuthenticatedPopup({ user, onLogout }: { user: StoredUser; onLogout: ()
       <div style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--border)", padding: "0.75rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <Zap size={18} color="var(--accent)" fill="var(--accent)" />
-          <span className="gradient-text" style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.02em" }}>LeetSync</span>
+          <span className="gradient-text" style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.02em" }}>uCode</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{user.username || user.email.split("@")[0]}</span>
