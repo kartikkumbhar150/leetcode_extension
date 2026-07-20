@@ -113,9 +113,7 @@ export default function App() {
   if (!authChecked) {
     return (
       <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-base)" }}>
-        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}>
-          <Zap size={32} color="var(--accent)" />
-        </motion.div>
+        <Zap size={28} color="var(--accent)" />
       </div>
     );
   }
@@ -142,89 +140,67 @@ export default function App() {
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "0.5rem 0.75rem 1.5rem" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              marginBottom: 2,
-            }}
-          >
-            <Zap size={20} color="var(--accent)" fill="var(--accent)" />
-            <span
-              className="gradient-text"
-              style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.02em" }}
-            >
-              LeetSync
-            </span>
+        <div style={{ padding: "0.75rem 0.5rem 1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Zap size={18} color="var(--accent)" fill="var(--accent)" />
+            <span className="gradient-text" style={{ fontWeight: 700, fontSize: 15 }}>LeetSync</span>
           </div>
-          <span className="section-label">v1.0</span>
         </div>
 
         {/* LeetCode group */}
-        <NavGroup
-          label="LeetCode"
-          isOpen={openGroup === "leetcode"}
-          onToggle={() => setOpenGroup(openGroup === "leetcode" ? "productivity" : "leetcode")}
+        <button
+          className={`nav-group-header ${openGroup === "leetcode" ? "open" : ""}`}
+          onClick={() => setOpenGroup(openGroup === "leetcode" ? "productivity" : "leetcode")}
         >
-          {NAV_LEETCODE.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => { setTab(id as Tab); setOpenGroup("leetcode"); }}
-              className={`nav-item ${tab === id ? "active" : ""}`}
-              style={{ width: "100%", background: "none", paddingLeft: "1.5rem" }}
-            >
-              <Icon size={14} />
-              {label}
-              {id === "revision" && dueCount > 0 && (
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    background: "var(--hard)",
-                    color: "#fff",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: "1px 6px",
-                    borderRadius: 99,
-                  }}
-                >
-                  {dueCount}
-                </span>
-              )}
-            </button>
-          ))}
-        </NavGroup>
+          <ChevronDown size={12} style={{ transform: openGroup === "leetcode" ? "rotate(0)" : "rotate(-90deg)", transition: "transform 0.2s", flexShrink: 0 }} />
+          LeetCode
+        </button>
+        {openGroup === "leetcode" && NAV_LEETCODE.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id as Tab)}
+            className={`nav-item ${tab === id ? "active" : ""}`}
+          >
+            <Icon size={14} />
+            {label}
+            {id === "revision" && dueCount > 0 && (
+              <span style={{ marginLeft: "auto", background: "var(--hard)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 4 }}>
+                {dueCount}
+              </span>
+            )}
+          </button>
+        ))}
+
+        <div className="divider" style={{ margin: "0.35rem 0" }} />
 
         {/* Productivity group */}
-        <NavGroup
-          label="Productivity"
-          isOpen={openGroup === "productivity"}
-          onToggle={() => setOpenGroup(openGroup === "productivity" ? "leetcode" : "productivity")}
+        <button
+          className={`nav-group-header ${openGroup === "productivity" ? "open" : ""}`}
+          onClick={() => setOpenGroup(openGroup === "productivity" ? "leetcode" : "productivity")}
         >
-          {NAV_CLARIO.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => { setTab(id as Tab); setOpenGroup("productivity"); }}
-              className={`nav-item ${tab === id ? "active" : ""}`}
-              style={{ width: "100%", background: "none", paddingLeft: "1.5rem" }}
-            >
-              <Icon size={14} />
-              {label}
-            </button>
-          ))}
-        </NavGroup>
+          <ChevronDown size={12} style={{ transform: openGroup === "productivity" ? "rotate(0)" : "rotate(-90deg)", transition: "transform 0.2s", flexShrink: 0 }} />
+          Productivity
+        </button>
+        {openGroup === "productivity" && NAV_CLARIO.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id as Tab)}
+            className={`nav-item ${tab === id ? "active" : ""}`}
+          >
+            <Icon size={14} />
+            {label}
+          </button>
+        ))}
 
         {/* Settings standalone */}
-        <div style={{ height: 1, background: "var(--border)", margin: "0.25rem 0.5rem" }} />
+        <div className="divider" style={{ margin: "0.35rem 0" }} />
         {NAV_BOTTOM.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id as Tab)}
             className={`nav-item ${tab === id ? "active" : ""}`}
-            style={{ width: "100%", background: "none" }}
           >
-            <Icon size={16} />
+            <Icon size={14} />
             {label}
           </button>
         ))}
@@ -320,29 +296,21 @@ export default function App() {
           gap: "1.25rem",
         }}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.15 }}
-          >
-            {tab === "overview" && <OverviewView stats={stats} />}
-            {tab === "journal" && <JournalView />}
-            {tab === "revision" && <RevisionView onCountChange={setDueCount} />}
-            {tab === "topics" && <TopicChart stats={stats} />}
-            {tab === "heatmap" && <HeatmapView stats={stats} />}
-            {tab === "dsa" && <DSASheetView />}
-            {tab === "focus" && <FocusTimerView />}
-            {tab === "tasks" && <TasksView />}
+        <div>
+            {tab === "overview"  && <OverviewView stats={stats} />}
+            {tab === "journal"   && <JournalView />}
+            {tab === "revision"  && <RevisionView onCountChange={setDueCount} />}
+            {tab === "topics"    && <TopicChart stats={stats} />}
+            {tab === "heatmap"   && <HeatmapView stats={stats} />}
+            {tab === "dsa"       && <DSASheetView />}
+            {tab === "focus"     && <FocusTimerView />}
+            {tab === "tasks"     && <TasksView />}
             {tab === "timetrack" && <TimeTrackingView />}
             {tab === "analytics" && <AnalyticsView />}
-            {tab === "ai" && <AIInsightsView />}
-            {tab === "reports" && <ReportsView />}
-            {tab === "settings" && <SettingsView />}
-          </motion.div>
-        </AnimatePresence>
+            {tab === "ai"        && <AIInsightsView />}
+            {tab === "reports"   && <ReportsView />}
+            {tab === "settings"  && <SettingsView />}
+          </div>
       </main>
       </div>  {/* end inner flex row */}
     </div>
