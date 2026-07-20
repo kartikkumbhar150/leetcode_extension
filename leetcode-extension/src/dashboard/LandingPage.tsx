@@ -433,8 +433,8 @@ function HeroSection({
       {/* Floating code card */}
       <motion.div
         initial={{ opacity: 0, x: 40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7, delay: 0.5 }}
+        animate={{ opacity: 1, x: 0, y: [0, -12, 0] }}
+        transition={{ duration: 0.7, delay: 0.5, y: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 } }}
         style={{
           position: "absolute",
           right: "max(2rem, calc(50% - 580px))",
@@ -447,8 +447,6 @@ function HeroSection({
           width: 300,
           boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 40px rgba(245,158,11,0.06)",
         }}
-        animate={{ y: ["-50%", "calc(-50% - 12px)", "-50%"] }}
-        // @ts-ignore framer-motion repeated animate trick
       >
         <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f56" }} />

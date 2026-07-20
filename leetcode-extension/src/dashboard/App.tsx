@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, BarChart3,
   Calendar, Settings, Zap,
-  RefreshCw, LogOut, User
+  RefreshCw, LogOut, User,
+  Timer, ListTodo, Clock, TrendingUp, Sparkles, FileText
 } from "lucide-react";
 import type { Stats } from "../services/analytics";
 import { computeStats, formatMs } from "../services/analytics";
@@ -14,6 +15,12 @@ import TopicChart from "./TopicChart";
 import JournalView from "./JournalView";
 import RevisionView from "./RevisionView";
 import SettingsView from "./SettingsView";
+import FocusTimerView from "./FocusTimerView";
+import TasksView from "./TasksView";
+import TimeTrackingView from "./TimeTrackingView";
+import AnalyticsView from "./AnalyticsView";
+import AIInsightsView from "./AIInsightsView";
+import ReportsView from "./ReportsView";
 import AuthPage from "./AuthPage";
 import LandingPage from "./LandingPage";
 import { getToken, getStoredUser, logout } from "../services/storage-adapter";
@@ -27,15 +34,33 @@ type Tab =
   | "revision"
   | "topics"
   | "heatmap"
+  | "focus"
+  | "tasks"
+  | "timetrack"
+  | "analytics"
+  | "ai"
+  | "reports"
   | "settings";
 
-const NAV = [
-  { id: "overview",  label: "Overview",   icon: LayoutDashboard },
-  { id: "journal",   label: "Journal",    icon: BookOpen },
-  { id: "revision",  label: "Revisions",  icon: RefreshCw },
-  { id: "topics",    label: "Topics",     icon: BarChart3 },
-  { id: "heatmap",   label: "Heatmap",    icon: Calendar },
-  { id: "settings",  label: "Settings",   icon: Settings },
+const NAV_LEETCODE = [
+  { id: "overview",  label: "Overview",      icon: LayoutDashboard },
+  { id: "journal",   label: "Journal",       icon: BookOpen },
+  { id: "revision",  label: "Revisions",     icon: RefreshCw },
+  { id: "topics",    label: "Topics",        icon: BarChart3 },
+  { id: "heatmap",   label: "Heatmap",       icon: Calendar },
+] as const;
+
+const NAV_CLARIO = [
+  { id: "focus",     label: "Focus Timer",   icon: Timer },
+  { id: "tasks",     label: "Tasks",         icon: ListTodo },
+  { id: "timetrack", label: "Time Tracker",  icon: Clock },
+  { id: "analytics", label: "Analytics",     icon: TrendingUp },
+  { id: "ai",        label: "AI Insights",   icon: Sparkles },
+  { id: "reports",   label: "Reports",       icon: FileText },
+] as const;
+
+const NAV_BOTTOM = [
+  { id: "settings",  label: "Settings",      icon: Settings },
 ] as const;
 
 export default function App() {
@@ -121,8 +146,9 @@ export default function App() {
           <span className="section-label">v1.0</span>
         </div>
 
-        {/* Nav Items */}
-        {NAV.map(({ id, label, icon: Icon }) => (
+        {/* LeetCode Nav */}
+        <div className="section-label" style={{ padding: "0 0.75rem", marginBottom: 4 }}>LeetCode</div>
+        {NAV_LEETCODE.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id as Tab)}
@@ -146,6 +172,39 @@ export default function App() {
                 {dueCount}
               </span>
             )}
+          </button>
+        ))}
+
+        {/* Divider */}
+        <div style={{ height: 1, background: "var(--border)", margin: "0.5rem 0.75rem" }} />
+
+        {/* Clario Nav */}
+        <div className="section-label" style={{ padding: "0 0.75rem", marginBottom: 4 }}>Productivity</div>
+        {NAV_CLARIO.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id as Tab)}
+            className={`nav-item ${tab === id ? "active" : ""}`}
+            style={{ width: "100%", background: "none" }}
+          >
+            <Icon size={16} />
+            {label}
+          </button>
+        ))}
+
+        {/* Divider */}
+        <div style={{ height: 1, background: "var(--border)", margin: "0.5rem 0.75rem" }} />
+
+        {/* Settings */}
+        {NAV_BOTTOM.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id as Tab)}
+            className={`nav-item ${tab === id ? "active" : ""}`}
+            style={{ width: "100%", background: "none" }}
+          >
+            <Icon size={16} />
+            {label}
           </button>
         ))}
 
@@ -253,6 +312,12 @@ export default function App() {
             {tab === "revision" && <RevisionView onCountChange={setDueCount} />}
             {tab === "topics" && <TopicChart stats={stats} />}
             {tab === "heatmap" && <HeatmapView stats={stats} />}
+            {tab === "focus" && <FocusTimerView />}
+            {tab === "tasks" && <TasksView />}
+            {tab === "timetrack" && <TimeTrackingView />}
+            {tab === "analytics" && <AnalyticsView />}
+            {tab === "ai" && <AIInsightsView />}
+            {tab === "reports" && <ReportsView />}
             {tab === "settings" && <SettingsView />}
           </motion.div>
         </AnimatePresence>
