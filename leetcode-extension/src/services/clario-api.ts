@@ -7,7 +7,7 @@
 import { getClarioToken } from "./storage-adapter";
 import { cachedGet, invalidate, invalidatePrefix, KEY, TTL } from "./api-cache";
 
-const BASE = "https://clario-track-your-time.vercel.app/api";
+const BASE = "https://backend-gules-eta-27.vercel.app/api";
 
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
   const token = await getClarioToken();
