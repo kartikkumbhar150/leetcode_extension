@@ -33,6 +33,14 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Base interactivity ─────────────────────────────────────── */
+button, [role="button"] {
+  cursor: pointer;
+}
+
+/* Prevent text selection on double-click for buttons */
+button { user-select: none; }
+
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg-base);
@@ -90,29 +98,33 @@ body {
   border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s, box-shadow 0.15s;
   white-space: nowrap;
+  user-select: none;
 }
 .btn-primary {
   background: var(--accent);
   color: #000;
 }
-.btn-primary:hover { background: var(--accent-dim); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary:hover  { background: var(--accent-dim); box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+.btn-primary:active { opacity: 0.85; box-shadow: none; }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
   border: 1px solid var(--border);
 }
-.btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.btn-ghost:hover  { background: var(--bg-glass); border-color: var(--border-hover); color: var(--text-primary); }
+.btn-ghost:active { opacity: 0.8; }
 
 .btn-danger {
   background: transparent;
   color: var(--hard);
-  border: 1px solid rgba(239,68,68,.3);
+  border: 1px solid rgba(239,68,68,.25);
 }
-.btn-danger:hover { background: rgba(239,68,68,.1); }
+.btn-danger:hover  { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.5); }
+.btn-danger:active { opacity: 0.8; }
 
 /* ── Progress bar ───────────────────────────────────────────── */
 .progress-bar {
@@ -156,17 +168,20 @@ body {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: color 0.12s, background 0.12s;
+  transition: color 0.12s, background 0.12s, border-left-color 0.12s;
   text-decoration: none;
   border: none;
+  border-left: 2px solid transparent;
   background: none;
   width: 100%;
   text-align: left;
 }
-.nav-item:hover { color: var(--text-primary); background: var(--bg-glass); }
+.nav-item:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.nav-item:active { background: rgba(255,255,255,0.06); }
 .nav-item.active {
   color: var(--accent);
   background: var(--accent-glow);
+  border-left-color: var(--accent);
   font-weight: 600;
 }
 
@@ -179,16 +194,16 @@ body {
   padding: 0.45rem 0.7rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
   background: none;
   border: none;
-  transition: color 0.12s;
+  transition: color 0.12s, background 0.12s;
 }
-.nav-group-header:hover { color: var(--text-secondary); }
+.nav-group-header:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
 .nav-group-header.open  { color: var(--text-primary); }
 
 /* ── Heatmap cell ───────────────────────────────────────────── */
@@ -448,14 +463,17 @@ body {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s, box-shadow 0.12s;
+  user-select: none;
 }
-.tab-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.tab-btn:hover  { border-color: var(--border-hover); color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.tab-btn:active { opacity: 0.8; }
 .tab-btn.active {
   background: var(--accent);
   border-color: var(--accent);
   color: #000;
 }
+.tab-btn.active:hover { background: var(--accent-dim); border-color: var(--accent-dim); }
 
 /* ── Report Table ───────────────────────────────────────────── */
 .report-table {
