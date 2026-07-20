@@ -229,6 +229,24 @@ const run = async () => {
   await sql`CREATE INDEX IF NOT EXISTS idx_reviews_topic ON topic_reviews(topic_id, reviewed_at);`;
   console.log('✅ Table: topic_reviews');
 
+  // ─── DSA Pattern Sheet ────────────────────────────────────────────────────────
+  await sql`
+    CREATE TABLE IF NOT EXISTS dsa_problems (
+      id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      pattern      TEXT NOT NULL,
+      number       INTEGER NOT NULL,
+      title        TEXT NOT NULL,
+      link         TEXT NOT NULL,
+      difficulty   TEXT NOT NULL DEFAULT 'Medium',
+      notes        TEXT DEFAULT '',
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_dsa_pattern ON dsa_problems(pattern, number);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_dsa_created ON dsa_problems(created_at DESC);`;
+  console.log('✅ Table: dsa_problems');
+
   console.log('\n🎉 Migration complete! All tables created in Neon DB.');
   process.exit(0);
 };

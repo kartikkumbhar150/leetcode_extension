@@ -12,6 +12,7 @@ import aiRoutes from './routes/aiRoutes';
 import focusRoutes from './routes/focusRoutes';
 import journalRoutes from './routes/journalRoutes';
 import revisionRoutes from './routes/revisionRoutes';
+import dsaRoutes from './routes/dsaRoutes';
 import { initCronJobs } from './services/cronService';
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/focus', focusRoutes);
 app.use('/api/journal', journalRoutes);
 app.use('/api/revision', revisionRoutes);
+app.use('/api/dsa', dsaRoutes);
 
 app.get('/', (req, res) => res.send('Productivity API is running'));
 

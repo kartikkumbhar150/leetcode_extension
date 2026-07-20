@@ -220,3 +220,19 @@ export type NewLearningTopic = typeof learningTopics.$inferInsert;
 
 export type TopicReview = typeof topicReviews.$inferSelect;
 export type NewTopicReview = typeof topicReviews.$inferInsert;
+
+// ─── DSA Pattern Sheet ────────────────────────────────────────────────────────
+export const dsaProblems = pgTable('dsa_problems', {
+  id:         uuid('id').defaultRandom().primaryKey(),
+  pattern:    text('pattern').notNull(),
+  number:     integer('number').notNull(),
+  title:      text('title').notNull(),
+  link:       text('link').notNull(),
+  difficulty: text('difficulty').default('Medium').notNull(),
+  notes:      text('notes').default(''),
+  createdAt:  timestamp('created_at').defaultNow().notNull(),
+  updatedAt:  timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type DsaProblem    = typeof dsaProblems.$inferSelect;
+export type NewDsaProblem = typeof dsaProblems.$inferInsert;

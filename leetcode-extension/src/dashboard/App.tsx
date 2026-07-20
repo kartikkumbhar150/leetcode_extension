@@ -15,6 +15,7 @@ import TopicChart from "./TopicChart";
 import JournalView from "./JournalView";
 import RevisionView from "./RevisionView";
 import SettingsView from "./SettingsView";
+import DSASheetView from "./DSASheetView";
 import FocusTimerView from "./FocusTimerView";
 import TasksView from "./TasksView";
 import TimeTrackingView from "./TimeTrackingView";
@@ -35,6 +36,7 @@ type Tab =
   | "revision"
   | "topics"
   | "heatmap"
+  | "dsa"
   | "focus"
   | "tasks"
   | "timetrack"
@@ -44,11 +46,12 @@ type Tab =
   | "settings";
 
 const NAV_LEETCODE = [
-  { id: "overview",  label: "Overview",      icon: LayoutDashboard },
-  { id: "journal",   label: "Journal",       icon: BookOpen },
-  { id: "revision",  label: "Revisions",     icon: RefreshCw },
-  { id: "topics",    label: "Topics",        icon: BarChart3 },
-  { id: "heatmap",   label: "Heatmap",       icon: Calendar },
+  { id: "overview",  label: "Overview",       icon: LayoutDashboard },
+  { id: "journal",   label: "Journal",        icon: BookOpen },
+  { id: "revision",  label: "Revisions",      icon: RefreshCw },
+  { id: "topics",    label: "Topics",         icon: BarChart3 },
+  { id: "heatmap",   label: "Heatmap",        icon: Calendar },
+  { id: "dsa",       label: "DSA Sheet",      icon: Zap },
 ] as const;
 
 const NAV_CLARIO = [
@@ -330,6 +333,7 @@ export default function App() {
             {tab === "revision" && <RevisionView onCountChange={setDueCount} />}
             {tab === "topics" && <TopicChart stats={stats} />}
             {tab === "heatmap" && <HeatmapView stats={stats} />}
+            {tab === "dsa" && <DSASheetView />}
             {tab === "focus" && <FocusTimerView />}
             {tab === "tasks" && <TasksView />}
             {tab === "timetrack" && <TimeTrackingView />}
