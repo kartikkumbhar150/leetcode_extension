@@ -4,7 +4,7 @@ import {
   LayoutDashboard, BookOpen, BarChart3,
   Calendar, Settings, Zap,
   RefreshCw, LogOut, User,
-  Timer, ListTodo, Clock, TrendingUp, Sparkles, FileText
+  Timer, ListTodo, Clock, TrendingUp, Sparkles, FileText, ChevronDown
 } from "lucide-react";
 import type { Stats } from "../services/analytics";
 import { computeStats, formatMs } from "../services/analytics";
@@ -69,6 +69,8 @@ export default function App() {
   const [dueCount, setDueCount] = useState(0);
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<StoredUser | null>(null);
+  // Track which nav group is open
+  const [openGroup, setOpenGroup] = useState<"leetcode" | "productivity">("leetcode");
 
   // Check for existing token on mount
   useEffect(() => {
@@ -146,56 +148,61 @@ export default function App() {
           <span className="section-label">v1.0</span>
         </div>
 
-        {/* LeetCode Nav */}
-        <div className="section-label" style={{ padding: "0 0.75rem", marginBottom: 4 }}>LeetCode</div>
-        {NAV_LEETCODE.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id as Tab)}
-            className={`nav-item ${tab === id ? "active" : ""}`}
-            style={{ width: "100%", background: "none" }}
-          >
-            <Icon size={16} />
-            {label}
-            {id === "revision" && dueCount > 0 && (
-              <span
-                style={{
-                  marginLeft: "auto",
-                  background: "var(--hard)",
-                  color: "#fff",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: "1px 6px",
-                  borderRadius: 99,
-                }}
-              >
-                {dueCount}
-              </span>
-            )}
-          </button>
-        ))}
+        {/* LeetCode group */}
+        <NavGroup
+          label="LeetCode"
+          isOpen={openGroup === "leetcode"}
+          onToggle={() => setOpenGroup(openGroup === "leetcode" ? "productivity" : "leetcode")}
+        >
+          {NAV_LEETCODE.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => { setTab(id as Tab); setOpenGroup("leetcode"); }}
+              className={`nav-item ${tab === id ? "active" : ""}`}
+              style={{ width: "100%", background: "none", paddingLeft: "1.5rem" }}
+            >
+              <Icon size={14} />
+              {label}
+              {id === "revision" && dueCount > 0 && (
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    background: "var(--hard)",
+                    color: "#fff",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: "1px 6px",
+                    borderRadius: 99,
+                  }}
+                >
+                  {dueCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </NavGroup>
 
-        {/* Divider */}
-        <div style={{ height: 1, background: "var(--border)", margin: "0.5rem 0.75rem" }} />
+        {/* Productivity group */}
+        <NavGroup
+          label="Productivity"
+          isOpen={openGroup === "productivity"}
+          onToggle={() => setOpenGroup(openGroup === "productivity" ? "leetcode" : "productivity")}
+        >
+          {NAV_CLARIO.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => { setTab(id as Tab); setOpenGroup("productivity"); }}
+              className={`nav-item ${tab === id ? "active" : ""}`}
+              style={{ width: "100%", background: "none", paddingLeft: "1.5rem" }}
+            >
+              <Icon size={14} />
+              {label}
+            </button>
+          ))}
+        </NavGroup>
 
-        {/* Clario Nav */}
-        <div className="section-label" style={{ padding: "0 0.75rem", marginBottom: 4 }}>Productivity</div>
-        {NAV_CLARIO.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id as Tab)}
-            className={`nav-item ${tab === id ? "active" : ""}`}
-            style={{ width: "100%", background: "none" }}
-          >
-            <Icon size={16} />
-            {label}
-          </button>
-        ))}
-
-        {/* Divider */}
-        <div style={{ height: 1, background: "var(--border)", margin: "0.5rem 0.75rem" }} />
-
-        {/* Settings */}
+        {/* Settings standalone */}
+        <div style={{ height: 1, background: "var(--border)", margin: "0.25rem 0.5rem" }} />
         {NAV_BOTTOM.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -476,5 +483,69 @@ function StatCard({
       <div className="stat-number" style={{ color }}>{value}</div>
       <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4 }}>{label}</div>
     </motion.div>
+  );
+}
+
+// ── Collapsible nav group ───────────────────────────────────────
+function NavGroup({
+  label,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  label: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      {/* Group header — clickable toggle */}
+      <button
+        onClick={onToggle}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          width: "100%",
+          background: isOpen ? "var(--accent-glow)" : "transparent",
+          border: `1px solid ${isOpen ? "rgba(245,158,11,.2)" : "transparent"}`,
+          borderRadius: "var(--radius-sm)",
+          padding: "0.55rem 0.75rem",
+          cursor: "pointer",
+          color: isOpen ? "var(--accent)" : "var(--text-secondary)",
+          fontSize: 13,
+          fontWeight: 700,
+          textAlign: "left",
+          transition: "all 0.2s",
+        }}
+      >
+        <span style={{ flex: 1 }}>{label}</span>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <ChevronDown size={14} />
+        </motion.div>
+      </button>
+
+      {/* Animated children panel */}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 2, paddingTop: 2 }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
