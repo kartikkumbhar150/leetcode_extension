@@ -73,8 +73,8 @@ export default function App() {
   const [dueCount, setDueCount] = useState(0);
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<StoredUser | null>(null);
-  // Track which nav group is open
   const [openGroup, setOpenGroup] = useState<"leetcode" | "productivity">("leetcode");
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Check for existing token on mount
   useEffect(() => {
@@ -126,25 +126,41 @@ export default function App() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      {/* ── Mobile Sidebar Overlay ─────────────────────────── */}
+      <div 
+        className={`app-sidebar-overlay ${isMobileOpen ? "open" : ""}`} 
+        onClick={() => setIsMobileOpen(false)} 
+      />
+
       {/* ── Sidebar ────────────────────────────────────────── */}
       <aside
+        className={`app-sidebar ${isMobileOpen ? "open" : ""}`}
         style={{
-          width: 200,
-          minWidth: 200,
+          width: 220,
+          minWidth: 220,
           background: "var(--bg-card)",
           borderRight: "1px solid var(--border)",
           display: "flex",
           flexDirection: "column",
           padding: "1rem 0.75rem",
           gap: 4,
+          overflowY: "auto",
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "0.75rem 0.5rem 1rem" }}>
+        <div style={{ padding: "0.75rem 0.5rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <Zap size={18} color="var(--accent)" fill="var(--accent)" />
             <span className="gradient-text" style={{ fontWeight: 700, fontSize: 15 }}>LeetSync</span>
           </div>
+          {/* Mobile close button inside sidebar */}
+          <button 
+            onClick={() => setIsMobileOpen(false)}
+            style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", fontSize: 18 }}
+            className="mobile-close-btn"
+          >
+            ✕
+          </button>
         </div>
 
         {/* LeetCode group */}
@@ -158,7 +174,7 @@ export default function App() {
         {openGroup === "leetcode" && NAV_LEETCODE.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => setTab(id as Tab)}
+            onClick={() => { setTab(id as Tab); setIsMobileOpen(false); }}
             className={`nav-item ${tab === id ? "active" : ""}`}
           >
             <Icon size={14} />
@@ -184,7 +200,7 @@ export default function App() {
         {openGroup === "productivity" && NAV_CLARIO.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => setTab(id as Tab)}
+            onClick={() => { setTab(id as Tab); setIsMobileOpen(false); }}
             className={`nav-item ${tab === id ? "active" : ""}`}
           >
             <Icon size={14} />
@@ -197,7 +213,7 @@ export default function App() {
         {NAV_BOTTOM.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => setTab(id as Tab)}
+            onClick={() => { setTab(id as Tab); setIsMobileOpen(false); }}
             className={`nav-item ${tab === id ? "active" : ""}`}
           >
             <Icon size={14} />
@@ -285,8 +301,9 @@ export default function App() {
       </aside>
 
 
-      {/* ── Main Content ───────────────────────────────────── */}
+      {/* ── Main content area ────────────────────────────── */}
       <main
+        className="app-main"
         style={{
           flex: 1,
           overflow: "auto",
@@ -294,8 +311,19 @@ export default function App() {
           display: "flex",
           flexDirection: "column",
           gap: "1.25rem",
+          position: "relative",
         }}
       >
+        {/* Mobile Header (Hamburger + Tab Name) */}
+        <div className="mobile-header">
+          <button className="hamburger-btn" onClick={() => setIsMobileOpen(true)}>
+            ☰
+          </button>
+          <span style={{ fontWeight: 600, fontSize: "1.05rem", color: "var(--text-primary)", textTransform: "capitalize" }}>
+            {tab === "dsa" ? "DSA Pattern Sheet" : tab}
+          </span>
+        </div>
+
         <div>
             {tab === "overview"  && <OverviewView stats={stats} />}
             {tab === "journal"   && <JournalView />}
