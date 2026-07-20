@@ -4,12 +4,12 @@
 // Attaches the same JWT token used by the extension.
 // ============================================================
 
-import { getToken } from "./storage-adapter";
+import { getClarioToken } from "./storage-adapter";
 
 const BASE = "https://clario-track-your-time.vercel.app/api";
 
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const token = await getToken();
+  const token = await getClarioToken();
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 

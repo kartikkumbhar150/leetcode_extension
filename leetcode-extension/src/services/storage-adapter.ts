@@ -50,19 +50,30 @@ export async function adapterRemove(key: string): Promise<void> {
 }
 
 // ─── JWT Token helpers ─────────────────────────────────────────
-const TOKEN_KEY = "leetsync_jwt";
-const USER_KEY  = "leetsync_user";
+const TOKEN_KEY        = "leetsync_jwt";
+const CLARIO_TOKEN_KEY = "clario_jwt";
+const USER_KEY         = "leetsync_user";
 
+// LeetSync token (used by api-client.ts for /api/problems etc.)
 export async function getToken(): Promise<string | null> {
   return adapterGet<string | null>(TOKEN_KEY, null);
 }
-
 export async function setToken(token: string): Promise<void> {
   return adapterSet(TOKEN_KEY, token);
 }
-
 export async function clearToken(): Promise<void> {
   return adapterRemove(TOKEN_KEY);
+}
+
+// Clario token (used by clario-api.ts for productivity backend)
+export async function getClarioToken(): Promise<string | null> {
+  return adapterGet<string | null>(CLARIO_TOKEN_KEY, null);
+}
+export async function setClarioToken(token: string): Promise<void> {
+  return adapterSet(CLARIO_TOKEN_KEY, token);
+}
+export async function clearClarioToken(): Promise<void> {
+  return adapterRemove(CLARIO_TOKEN_KEY);
 }
 
 export interface StoredUser {
@@ -86,5 +97,6 @@ export async function clearStoredUser(): Promise<void> {
 
 export async function logout(): Promise<void> {
   await clearToken();
+  await clearClarioToken();
   await clearStoredUser();
 }

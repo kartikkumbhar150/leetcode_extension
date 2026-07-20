@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Mail, Lock, User, Eye, EyeOff, AlertCircle, Loader } from "lucide-react";
+import { authApi } from "../services/api-client";
 import { clarioAuth } from "../services/clario-api";
-import { setToken, setStoredUser } from "../services/storage-adapter";
+import { setToken, setClarioToken, setStoredUser } from "../services/storage-adapter";
 import type { StoredUser } from "../services/storage-adapter";
 
 interface AuthPageProps {
@@ -25,20 +26,65 @@ export default function AuthPage({ onSuccess, initialMode = "login" }: AuthPageP
     setError("");
     setLoading(true);
     try {
-      if (mode === "login") {
-        const result = await clarioAuth.login(email, password);
-        await setToken(result.token);
-        const user: StoredUser = { id: result._id, email: result.email, name: result.name, username: result.name };
-        await setStoredUser(user);
-        onSuccess(user);
-      } else {
-        const name = fullName.trim() || username.trim() || email.split("@")[0];
-        const result = await clarioAuth.register(name, email, password);
-        await setToken(result.token);
-        const user: StoredUser = { id: result._id, email: result.email, name: result.name, username: result.name };
-        await setStoredUser(user);
-        onSuccess(user);
+      const name = fullName.trim() || email.split("@")[0];
+
+      // ── 1. LeetSync backend (primary — owns /api/problems, /api/revisions etc.) ──
+      let lsUser: StoredUser | null = null;
+      try {
+        if (mode === "login") {
+          const r = await authApi.login(email, password);
+          await setToken(r.token);
+          lsUser = { id: r.user.id, email: r.user.email, username: r.user.username, name: r.user.username };
+        } else {
+          const r = await authApi.signup(email, password, name);
+          await setToken(r.token);
+          lsUser = { id: r.user.id, email: r.user.email, username: r.user.username, name: r.user.username };
+        }
+      } catch (lsErr) {
+        // LeetSync login failed — still try Clario so Productivity features work
+        console.warn("[LeetSync] auth failed:", lsErr instanceof Error ? lsErr.message : lsErr);
       }
+
+      // ── 2. Clario backend (secondary — owns focus/analytics/tasks etc.) ──
+      try {
+        if (mode === "login") {
+          const r = await clarioAuth.login(email, password);
+          await setClarioToken(r.token);
+          // If LeetSync failed, fall back to Clario identity
+          if (!lsUser) {
+            lsUser = { id: r._id, email: r.email, name: r.name, username: r.name };
+          }
+        } else {
+          const r = await clarioAuth.register(name, email, password);
+          await setClarioToken(r.token);
+          if (!lsUser) {
+            lsUser = { id: r._id, email: r.email, name: r.name, username: r.name };
+          }
+        }
+      } catch (clarioErr: unknown) {
+        // On login, Clario might not have this account yet — auto-register
+        if (mode === "login") {
+          try {
+            const r = await clarioAuth.register(name, email, password);
+            await setClarioToken(r.token);
+            if (!lsUser) {
+              lsUser = { id: r._id, email: r.email, name: r.name, username: r.name };
+            }
+          } catch {
+            // Clario completely unavailable — productivity features will be limited
+            console.warn("[Clario] auth failed:", clarioErr instanceof Error ? clarioErr.message : clarioErr);
+          }
+        } else {
+          console.warn("[Clario] register failed:", clarioErr instanceof Error ? clarioErr.message : clarioErr);
+        }
+      }
+
+      if (!lsUser) {
+        throw new Error("Authentication failed. Please check your credentials.");
+      }
+
+      await setStoredUser(lsUser);
+      onSuccess(lsUser);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
